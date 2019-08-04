@@ -1,0 +1,8 @@
+TPL (two phase locking)
+-> when tranc loading high 
+
+Optimistic Concurrency Control (OCC)
+-> when tranc loading not high
+
+Timestamp Ordering (TO)
+-> Worst syst performance 

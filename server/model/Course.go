@@ -1,113 +1,102 @@
 package model
 
 import (
-	"fmt"
-	"time"
-	"webserver/server/common"
+	"log"
 
-	"github.com/go-bongo/bongo"
 	"gopkg.in/mgo.v2/bson"
 )
 
-type Courses struct {
-	bongo.DocumentBase `bson:",inline"`
-	ID                 string `bson:"_id", json:"_id"`
-	CourseID           string `bson:"course_id", json:"course_id"`
-	Title              string `bson:"title",json:"title"`
-	Level              int    `bson:"level",bson:"level"`
+type CourseMod struct {
+	ID       string `bson:"_id", json:"_id"`
+	CourseID string `bson:"course_id", json:"course_id"`
+	Title    string `bson:"title",json:"title"`
+	Level    int    `bson:"level",bson:"level"`
 }
 
-func FetchCouse(param *bson.M) (*bongo.ResultSet, error) {
-	if DBConn != nil {
-		result := DBConn.Collection("Course").Find(param)
-		// resultSet := []*Courses
-		// for results.Next(person) {
-		// 	fmt.Println(person.FirstName)
-		// }
+func FetchCouse(param interface{}, ps *PageMeta) (record *[]CourseMod, nps *PageMeta, err error) {
+	if DBSess != nil && DBConn != nil {
+		count, err = DBConn.C("Course").Find(param).All(&record).Count()
+		if err != nil {
+			log.Fatal(err)
+			record = nil
+			nps = nil
+			return
+		}
+		err = nil
+		nps.Count = count
+		return
+	} else {
+		record, err = NotConn()
+		return
+	}
+}
+
+func GetCouse(id string) (*CourseMod, error) {
+	if DBSess != nil && DBConn != nil {
+		var result *CourseMod
+		err := DBConn.C("Course").Find(bson.M{
+			"_id": id,
+		}).One(&result)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
 		return result, nil
 	} else {
-		return nil, common.ErrorMessage{
-			When: time.Now(),
-			What: "MongoDB is not Connect",
-		}
+ß		return NotConn()
 	}
 }
 
-func GetCouse(param *bson.M) (*Courses, error) {
-	if DBConn != nil {
-		qwe := &Courses{}
-		err := DBConn.Collection("Course").FindOne(param, qwe)
+func CreateCourse(cp *CourseMod) (*CourseMod, error) {
+	if DBSess != nil && DBConn != nil {
+		err := DBConn.C("Course").Insert(cp)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Fatal(err.Error())
 			return nil, err
-		} else {
-			return qwe, nil
-		}
-	} else {
-		return nil, common.ErrorMessage{
-			When: time.Now(),
-			What: "MongoDB is not Connect",
-		}
-	}
-}
-
-func CreateCourse(cp *Courses) (*Courses, error) {
-	if DBConn != nil {
-		err := DBConn.Collection("Course").Save(cp)
-		if vErr, ok := err.(*bongo.ValidationError); ok {
-			fmt.Println("Validation errors are:", vErr.Errors)
-			return nil, err
-		} else {
-			fmt.Println("Got a real error:", err.Error())
-			return nil , err
 		}
 		return cp, nil
 	} else {
-		return nil, common.ErrorMessage{
-			When: time.Now(),
-			What: "MongoDB is not Connect",
-		}
+		return NotConn()
 	}
 }
 
-func UpdateCourse(cp *Course) (*Course, error) {
-	if DBConn != nil {
-		err := DBConn.Collection("Course").Save(cp)
-		if vErr, ok := err.(*bongo.ValidationError); ok {
-			fmt.Println("Validation errors are:", vErr.Errors)
+func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
+	if DBSess != nil && DBConn != nil {
+		err := DBConn.C("Course").Update(Old, New)
+		if err != nil {
+			log.Fatal(err)
 			return nil, err
-		} else {
-			fmt.Println("Got a real error:", err.Error())
-			return nil , err
 		}
-		return cp, nil
-		
+		return New, nil
 	} else {
-		return nil, common.ErrorMessage{
-			When: time.Now(),
-			What: "MongoDB is not Connect",
-		}
+		return NotConn()
 	}
 }
 
-func DeleteCourse(cpid *string) (bool, error){
-	if DBConn != nil {
-		err := DBConn.Collection("Course").DeleteOne(&bson.M{"_id":cpid})
-		if err != nil{
-			fmt.Println("Got a real error:", err.Error())
-			return false,err
+func DeleteCourse(cpid *string) (bool, error) {
+	if DBSess != nil && DBConn != nil {
+		err := DBConn.C("Course").Remove(&bson.M{"_id": cpid})
+		if err != nil {
+			log.Fatal("Got a real error:", err.Error())
+			return false, err
 		} else {
-			return true , err
+			return true, nil
 		}
-		
-	} else {
-		return nil, common.ErrorMessage{
-			When: time.Now(),
-			What: "MongoDB is not Connect",
-		}
-	} 
-} 
 
-func CreateSchemaCourse() (bool,error){
-	
+	} else {
+		return NotConn()
+	}
+}
+
+func TestCourse(param *CourseMod) (bool, error) {
+	if DBSess != nil && DBConn != nil {
+		count, err := DBConn.C("Course").Find(param).Count()
+		if err != nil {
+			return false, err
+		} else {
+			return (count == 0), nil
+		}
+	} else {
+		return NotConn()
+	}
 }

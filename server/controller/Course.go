@@ -1,98 +1,102 @@
 package controller
 
-// import (
-// 	_ "webserver/server"
-// 	"webserver/server/model"
-
-// 	"github.com/gin-gonic/gin"
-// )
-
-// // func InsertCourse(w *gin.Context) {
-// // 	_, err := DB.create(model.CoursesMod)
-// // }
-
-
 import (
-	// m "wildbase/pkg/wildbase/model"
 	"fmt"
 	"log"
-	"strconv"
-	
-	"webserver/server/controller/util"
+
 	m "webserver/server/model"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Comtroller
-func CreateGroup(c *gin.Context) {
-	var tem m.UserGroupMod
+func CreateCourse(c *gin.Context) {
+	var tem m.CourseMod
 	if c.BindJSON(&tem) == nil {
-		k, err := IF.Create(&tem)
-		if len(err) > 0 {
-			log.Println(err)
-			util.RespondJSONWithError(c, 500, err)
+		test, err := m.TestCourse(&tem)
+		if !test {
+			log.Fatal(err)
+			RespondJSONWithError(c, 500, err)
 		} else {
-			util.RespondJSON(c, 200, k)
+			k, err := m.CreateCourse(&tem)
+			if err != nil {
+				log.Println(err)
+				RespondJSONWithError(c, 500, err)
+			} else {
+				RespondJSON(c, 200, k, nil)
+			}
 		}
 	} else {
-		util.RespondJSONWithError(c, 500, nil)
+		BindingErr(c, tem)
 	}
 }
 
-func GetGroupList(c *gin.Context) {
+func GetCourseList(c *gin.Context) {
 	// k, err := IF.Fetch("")
-	if len(err) > 0 {
+	var tem m.CourseMod
+	var PS m.PageMeta
+	err := RequestJson(c, &tem, &PS)
+	if (err) != nil {
 		log.Println(err)
-		util.RespondJSONWithError(c, 500, err)
+		RespondJSONWithError(c, 500, err)
 	} else {
-		util.RespondJSON(c, 200, k)
+		// search
+		k, PS1, err2 := m.FetchCourse(tem, &PS)
+		if err2 != nil {
+			RespondJSONWithError(c, 500, err2)
+		} else {
+			RespondJSON(c, 200, k, PS1)
+		}
 	}
 }
 
-func GetGroup(c *gin.Context) {
+func GetCourse(c *gin.Context) {
 	fmt.Println(c.Params)
 	id, err := c.Params.Get("id")
 	if err == false {
-		util.RespondJSONWithError(c, 500, err)
+		RespondJSONWithError(c, 500, err)
 	} else {
-		// k, err2 := IF.Get(id)
-
-		if len(err2) > 0 {
-			util.RespondJSONWithError(c, 500, err)
+		k, err2 := m.GetCourse(id)
+		if (err2) != nil {
+			RespondJSONWithError(c, 500, err)
 		} else {
-			util.RespondJSON(c, 200, k)
+			RespondJSON(c, 200, k, nil)
 		}
 	}
 }
 
-func UpdateGroup(c *gin.Context) {
-	var tem m.UserGroupMod
+func UpdateCourse(c *gin.Context) {
+	var tem m.CourseMod
 	if c.BindJSON(&tem) == nil {
-		k, err := IF.Update(&tem)
-		if len(err) > 0 {
-			log.Println(err)
-			util.RespondJSONWithError(c, 500, err)
-		} else {
-			util.RespondJSON(c, 200, k)
+		k1, errr := m.GetCourse(tem.ID)
+		if errr != nil {
+			log.Fatalln(errr)
+		}
+		if k1 != nil {
+			k, err := m.UpdateCourse(k1, &tem)
+			if err != nil {
+				log.Println(err)
+				RespondJSONWithError(c, 500, err)
+			} else {
+				RespondJSON(c, 200, k, nil)
+			}
 		}
 	} else {
-		util.RespondJSONWithError(c, 500, nil)
+		RespondJSONWithError(c, 500, nil)
 	}
 }
 
-func DeleteGroup(c *gin.Context) {
-	var tem m.UserGroupMod
+func DeleteCourse(c *gin.Context) {
+	var tem m.CourseMod
 	if c.BindJSON(&tem) == nil {
-		val := strconv.FormatUint(uint64(tem.ID), 10)
-		k, err := IF.Delete(&val)
-		if len(err) > 0 {
+		_, err := m.DeleteCourse(&tem.ID)
+		if err != nil {
 			log.Println(err)
-			util.RespondJSONWithError(c, 500, err)
+			RespondJSONWithError(c, 500, err)
 		} else {
-			util.RespondJSON(c, 200, k)
+			RespondJSON(c, 200, true, nil)
 		}
 	} else {
-		util.RespondJSONWithError(c, 500, nil)
+		BindingErr(c, tem)
 	}
 }
