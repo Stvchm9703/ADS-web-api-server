@@ -13,7 +13,7 @@ type CourseMod struct {
 	Level    int    `bson:"level",bson:"level"`
 }
 
-func FetchCouse(param interface{}, ps *PageMeta) (record *[]CourseMod, nps *PageMeta, err error) {
+func FetchCourse(param interface{}, ps *PageMeta) (record *[]CourseMod, nps *PageMeta, err error) {
 	if DBSess != nil && DBConn != nil {
 		count, err = DBConn.C("Course").Find(param).All(&record).Count()
 		if err != nil {
@@ -31,7 +31,7 @@ func FetchCouse(param interface{}, ps *PageMeta) (record *[]CourseMod, nps *Page
 	}
 }
 
-func GetCouse(id string) (*CourseMod, error) {
+func GetCourse(id string) (*CourseMod, error) {
 	if DBSess != nil && DBConn != nil {
 		var result *CourseMod
 		err := DBConn.C("Course").Find(bson.M{
