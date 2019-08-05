@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"gopkg.in/mgo.v2/bson"
+
+	"webserver/server/common"
 )
 
 type CourseMod struct {
@@ -13,21 +15,48 @@ type CourseMod struct {
 	Level    int    `bson:"level",bson:"level"`
 }
 
-func FetchCourse(param interface{}, ps *PageMeta) (record *[]CourseMod, nps *PageMeta, err error) {
+// FetchCourse : GEt the Course list
+func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
+	var record []*CourseMod
+	var nps *PageMeta
+
 	if DBSess != nil && DBConn != nil {
-		count, err = DBConn.C("Course").Find(param).All(&record).Count()
-		if err != nil {
-			log.Fatal(err)
-			record = nil
-			nps = nil
-			return
+		count, err := DBConn.C("Course").Find(param).Count()
+		Q := DBConn.C("Course").Find(param)
+		if ps.PageLimit > 0 {
+			Q = Q.Limit(ps.PageLimit)
+			nps.PageLimit = ps.PageLimit
+		} else {
+			Q = Q.Limit(common.QueryDefaultPageLimit)
+			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
-		err = nil
+		if ps.PageNum > 0 {
+			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)
+		}
+		err1 := Q.All(&record)
+		// if ps != nil {
+		// 	err1 = DBConn.C("Course").Find(param).Limit(nps.PageLimit).Skip((nps.PageNum - 1) * nps.PageLimit).All(&record)
+		// } else {
+		// 	err1 = DBConn.C("Course").Find(param).Limit(nps.PageLimit).Skip((nps.PageNum - 1) * nps.PageLimit).All(&record)
+		// }
+
+		if err != nil || err1 != nil {
+			log.Fatalln("error")
+			log.Fatalln(err)
+			log.Fatalln(err1)
+			log.Fatalln("param")
+			log.Fatalln(param)
+			if err != nil {
+				return nil, nil, err
+			} else {
+				return nil, nil, err1
+			}
+		}
 		nps.Count = count
-		return
+		return record, nps, nil
 	} else {
-		record, err = NotConn()
-		return
+		_, err := NotConn()
+		return nil, nil, err
 	}
 }
 
@@ -43,7 +72,8 @@ func GetCourse(id string) (*CourseMod, error) {
 		}
 		return result, nil
 	} else {
-ß		return NotConn()
+		_, err := NotConn()
+		return nil, err
 	}
 }
 
@@ -56,7 +86,8 @@ func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 		}
 		return cp, nil
 	} else {
-		return NotConn()
+		_, err := NotConn()
+		return nil, err
 	}
 }
 
@@ -69,7 +100,8 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 		}
 		return New, nil
 	} else {
-		return NotConn()
+		_, err := NotConn()
+		return nil, err
 	}
 }
 
@@ -79,12 +111,11 @@ func DeleteCourse(cpid *string) (bool, error) {
 		if err != nil {
 			log.Fatal("Got a real error:", err.Error())
 			return false, err
-		} else {
-			return true, nil
 		}
-
+		return true, nil
 	} else {
-		return NotConn()
+		_, err := NotConn()
+		return false, err
 	}
 }
 
@@ -93,10 +124,11 @@ func TestCourse(param *CourseMod) (bool, error) {
 		count, err := DBConn.C("Course").Find(param).Count()
 		if err != nil {
 			return false, err
-		} else {
-			return (count == 0), nil
 		}
+		return (count == 0), nil
+
 	} else {
-		return NotConn()
+		_, err := NotConn()
+		return false, err
 	}
 }

@@ -3,7 +3,7 @@ package model
 type OfferMod struct {
 	_id             string
 	Department      DepartmentMod
-	Course          CoursesMod
+	Course          CourseMod
 	Year            int
 	ClassSize       int
 	AvailablePlaces int
