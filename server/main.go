@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,9 +22,11 @@ var (
 
 func ServerMainProcess(configPara *conf.ConfigTemp, mode string) {
 	// NOTE: add Config reading
-
+	log.Println(configPara)
 	DB, err := model.ConnectDB(configPara)
-	log.Print(DB)
+	fmt.Println()
+	log.Println("Svr main procx")
+	fmt.Print(DB)
 	if err != nil {
 		log.Println(err)
 	}
@@ -46,6 +49,6 @@ func ServerMainProcess(configPara *conf.ConfigTemp, mode string) {
 	})
 	if err := g.Wait(); err != nil {
 		log.Fatal(err)
-		// model.DB.Close()
+		model.DisconnDB()
 	}
 }

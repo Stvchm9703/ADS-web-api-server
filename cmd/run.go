@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	Cf "webserver/cmd/CFfile"
 	Wb "webserver/server"
+	"webserver/server/common"
 
 	"github.com/spf13/cobra"
 )
@@ -30,8 +33,21 @@ var runCmd = &cobra.Command{
 		}
 
 		fmt.Println(runCMDInput.cfPath)
-		configPoint := Cf.OpenToml(runCMDInput.cfPath)
-		Wb.ServerMainProcess(configPoint, runCMDInput.mode)
+
+		var configPoint *common.ConfigTemp
+		var err error
+		if strings.Contains(runCMDInput.cfPath, ".toml") {
+			configPoint, err = Cf.OpenToml(runCMDInput.cfPath)
+		} else if strings.Contains(runCMDInput.cfPath, ".yaml") {
+			configPoint, err = Cf.OpenYaml(runCMDInput.cfPath)
+		}
+		log.Println(configPoint)
+		log.Println(runCMDInput.mode)
+		if err == nil {
+			Wb.ServerMainProcess(configPoint, runCMDInput.mode)
+		} else {
+			panic(err)
+		}
 	},
 }
 

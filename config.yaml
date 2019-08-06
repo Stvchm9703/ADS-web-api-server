@@ -1,0 +1,22 @@
+server:
+  ip: "0.0.0.0"
+  port: 8080
+  root_path: A:\Gitrepo\ADS-web-api-server\
+  main_path: ./
+  static_filepath: A:\Gitrepo\ADS-web-api-server\static
+  static_outpath: ./static
+  template_filepath: A:\Gitrepo\ADS-web-api-server\template
+  template_outpath: ./template
+
+database:
+  connector: mongodb
+  host: 127.0.0.1
+  port: 27017
+  username: ""
+  password: ""
+  database: scope_ADS
+  filepath: ""
+  
+db_fallback:
+  schema: db
+  filepath: A:\Gitrepo\Creator-Selling-Platform-API\db\Wildbase.fall.db

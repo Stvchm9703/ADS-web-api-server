@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	m "webserver/server/model"
 
@@ -13,7 +14,9 @@ import (
 func CreateCourse(c *gin.Context) {
 	var tem m.CourseMod
 	if c.BindJSON(&tem) == nil {
+		fmt.Println(tem)
 		test, err := m.TestCourse(&tem)
+
 		if !test {
 			log.Fatal(err)
 			RespondJSONWithError(c, 500, err)
@@ -33,21 +36,22 @@ func CreateCourse(c *gin.Context) {
 
 func GetCourseList(c *gin.Context) {
 	// k, err := IF.Fetch("")
-	var tem m.CourseMod
 	var PS m.PageMeta
-	err := RequestJson(c, &tem, &PS)
-	if (err) != nil {
-		log.Println(err)
-		RespondJSONWithError(c, 500, err)
+	PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
+	PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
+	fmt.Println("query map", c.Request.URL.Query())
+	fmt.Println("PS", PS)
+	// search
+	o := BindQuery(c.Request.URL.Query(), m.CourseMod{})
+	fmt.Println(o)
+	k, PS1, err2 := m.FetchCourse(o, &PS)
+	fmt.Println(k, PS1, err2)
+	if err2 != nil {
+		RespondJSONWithError(c, 500, err2)
 	} else {
-		// search
-		k, PS1, err2 := m.FetchCourse(tem, &PS)
-		if err2 != nil {
-			RespondJSONWithError(c, 500, err2)
-		} else {
-			RespondJSON(c, 200, k, PS1)
-		}
+		RespondJSON(c, 200, k, PS1)
 	}
+
 }
 
 func GetCourse(c *gin.Context) {

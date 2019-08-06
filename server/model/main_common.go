@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -25,7 +26,6 @@ func ConnectDB(temp *common.ConfigTemp) (*mgo.Session, error) {
 		log.Fatal(err)
 		return nil, err
 	}
-	defer DBSess.Close()
 	DBConn = DBSess.DB(temp.Database.Database)
 	return DBSess, nil
 }
@@ -40,6 +40,8 @@ func CreateDBTable(config *common.ConfigTemp) {
 }
 
 func NotConn() (*struct{}, error) {
+	fmt.Println(DBSess)
+	fmt.Println(DBConn)
 	return nil, &common.ErrorMessage{
 		When: time.Now(),
 		What: "MongoDB is not Connect",

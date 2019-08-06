@@ -3,6 +3,8 @@ package CFfile
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -45,15 +47,27 @@ func CreateConfigYaml(path string, initForm *conf.ConfigTemp) {
 	Writer.Flush()
 }
 
-func OpenToml(path string) *conf.ConfigTemp {
+func OpenToml(path string) (*conf.ConfigTemp, error) {
 	fmt.Println("= ---- open config.toml -----")
 	fmt.Println(path)
 
 	var config conf.ConfigTemp
-	if _, err := toml.DecodeFile(path, &config); err != nil {
+	_, err := toml.DecodeFile(path, &config)
+	if err != nil {
 		fmt.Println(err)
-		// panic(err)
 	}
+	return &config, err
+}
 
-	return &config
+func OpenYaml(path string) (*conf.ConfigTemp, error) {
+	fmt.Println("= ---- open config.yaml -----")
+	fmt.Println(path)
+
+	var config conf.ConfigTemp
+	yamlFile, _ := ioutil.ReadFile(path)
+	err := yaml.Unmarshal(yamlFile, &config)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+	return &config, err
 }

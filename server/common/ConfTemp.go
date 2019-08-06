@@ -12,7 +12,7 @@ type ConfigTemp struct {
 		TemplateOutpath  string `toml:"template_outpath" json:"template_outpath" yaml:"template_outpath"`
 		APITablePath     string `toml:"api_table_filepath" json:"api_table_filepath" yaml:"api_table_filepath"`
 		APIOutpath       string `toml:"api_outpath" json:"api_outpath" yaml:"api_outpath"`
-	} `toml:"prod_server" json:"prod_server" yaml:"prod_server"`
+	} `toml:"server" json:"server" yaml:"server"`
 
 	Database struct {
 		Connector string `toml:"connector" json:"connector" yaml:"connector"`
