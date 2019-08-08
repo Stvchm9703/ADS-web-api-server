@@ -17,6 +17,7 @@ var router errgroup.Group
 func RouterSetting(config *conf.ConfigTemp) http.Handler {
 	router := gin.New()
 	router.Use(gin.Recovery())
+	// router.Use(c.RecoverMW())
 	// router.Use(DummyMiddleware)
 	v1 := router.Group("/api/v1")
 	{

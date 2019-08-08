@@ -57,9 +57,9 @@ var jsonSchema = bson.M{
 func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
 	var record []*CourseMod
 	nps := PageMeta{}
-
+	fmt.Println("req. params", param)
 	if DBConn != nil {
-		count, err := DBConn.C(modName).Find(param).Count()
+		count, err := DBConn.C(modName).Find(&param).Count()
 		if err != nil {
 			log.Fatalln("error")
 			log.Fatalln(err)
@@ -76,7 +76,7 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 			Q = Q.Limit(common.QueryDefaultPageLimit)
 			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
-		fmt.Println(ps.PageNum)
+		fmt.Println("req. pageNum", ps.PageNum)
 		// defAULT : 1
 		if ps.PageNum > 0 {
 			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)

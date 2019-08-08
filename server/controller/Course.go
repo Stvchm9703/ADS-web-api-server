@@ -43,7 +43,13 @@ func GetCourseList(c *gin.Context) {
 	fmt.Println("PS", PS)
 	// search
 	o := BindQuery(c.Request.URL.Query(), m.CourseMod{})
-	fmt.Println(o)
+	fmt.Println("o", o)
+	// NOTE: test case query
+	// o = &bson.M{
+	// 	"level": bson.M{
+	// 		"$in": []float64{1.0, 1, 0, 2},
+	// 	},
+	// }
 	k, PS1, err2 := m.FetchCourse(o, &PS)
 	fmt.Println(k, PS1, err2)
 	if err2 != nil {
