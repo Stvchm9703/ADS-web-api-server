@@ -5,20 +5,35 @@ import (
 	"log"
 	"time"
 
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
 	"webserver/server/common"
+
+	oid "github.com/coolbed/mgo-oid"
 )
 
 type CourseMod struct {
-	ID        string    `bson:"_id" json:"_id,omitempty"`
-	CourseID  string    `bson:"course_id" json:"course_id,omitempty"`
-	Title     string    `bson:"title" json:"title,omitempty"`
-	Level     int       `bson:"level" json:"level,omitempty"`
-	CreatedAt time.Time `bson:"created_at" json:"created_at,omitempty"`
-	UpdatedAt time.Time `bson:"updated_at" json:"updated_at,omitempty"`
+	ID        *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+	CourseID  *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
+	Title     *string        `bson:"title,omitempty" json:"title,omitempty"`
+	Level     *int           `bson:"level,omitempty" json:"level,omitempty"`
+	CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
+type CourseMP CourseMod
+
+func (P *CourseMP) SetBSON(raw bson.Raw) error {
+	return raw.Unmarshal(P)
+}
+func (P *CourseMP) ModName() string {
+	return "Course"
+}
+
+func CourseIF interface {
+	FetchCourse()
+}
 var modName = "Course"
 
 var jsonSchema = bson.M{
@@ -73,7 +88,7 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit
 		} else {
-			Q = Q.Limit(common.QueryDefaultPageLimit)
+			Q = Q.Limit(common.QueryDefaultPageLimit) 
 			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
 		fmt.Println("req. pageNum", ps.PageNum)
@@ -106,7 +121,7 @@ func GetCourse(id string) (*CourseMod, error) {
 	if DBConn != nil {
 		var result *CourseMod
 		err := DBConn.C(modName).Find(bson.M{
-			"_id": id,
+			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
 			log.Fatal(err)
@@ -116,12 +131,21 @@ func GetCourse(id string) (*CourseMod, error) {
 	}
 	_, err := NotConn()
 	return nil, err
-
 }
 
 func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 	if DBConn != nil {
-		err := DBConn.C(modName).Insert(cp)
+		tnow := time.Now()
+		fmt.Println("hi create")
+		if cp.ID == nil {
+			temId := bson.ObjectId(string(oid.NewOID().Bytes()))
+			fmt.Println("temId:", temId.String())
+			cp.ID = &temId
+			fmt.Println(cp.ID)
+		}
+		cp.CreatedAt = &tnow
+		cp.UpdatedAt = &tnow
+		err := DBConn.C(modName).Insert(&cp)
 		if err != nil {
 			log.Fatal(err.Error())
 			return nil, err
@@ -130,26 +154,43 @@ func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 	}
 	_, err := NotConn()
 	return nil, err
-
 }
 
 func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 	if DBConn != nil {
-		err := DBConn.C(modName).Update(Old, New)
+		tnow := time.Now()
+		New.UpdatedAt = &tnow
+		if New.CreatedAt != Old.CreatedAt {
+			// Note: prevent edited
+			New.CreatedAt = Old.CreatedAt
+		}
+
+		temp, _ := bson.Marshal(New)
+		upNew := bson.M{}
+		bson.Unmarshal(temp, upNew)
+		Returned := CourseMod{}
+		_, err := DBConn.C(modName).Find(bson.M{"_id": Old.ID}).Apply(
+			mgo.Change{
+				Update:    bson.M{"$set": upNew},
+				ReturnNew: true,
+			},
+			&Returned,
+		)
+		// fmt.Println("info", info)
+		// fmt.Println("Returned", Returned)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
 		}
-		return New, nil
+		return &Returned, nil
 	}
 	_, err := NotConn()
 	return nil, err
-
 }
 
-func DeleteCourse(cpid *string) (bool, error) {
+func DeleteCourse(cpid string) (bool, error) {
 	if DBConn != nil {
-		err := DBConn.C(modName).Remove(&bson.M{"_id": cpid})
+		err := DBConn.C(modName).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
 		if err != nil {
 			log.Fatal("Got a real error:", err.Error())
 			return false, err
@@ -161,18 +202,16 @@ func DeleteCourse(cpid *string) (bool, error) {
 
 }
 
-func TestCourse(param *CourseMod) (bool, error) {
+func TestCourse(param map[string]interface{}) (bool, error) {
 	if DBConn != nil {
-		count, err := DBConn.C(modName).Find(param).Count()
+		count, err := DBConn.C(modName).Find(&param).Count()
 		if err != nil {
 			return false, err
 		}
 		return (count == 0), nil
-
 	}
 	_, err := NotConn()
 	return false, err
-
 }
 
 func CreateCourseFormat() (bool, error) {

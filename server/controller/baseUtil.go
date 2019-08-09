@@ -31,11 +31,11 @@ func RespondJSON(w *gin.Context, status int, payload interface{}, pageSet *model
 	fmt.Println("status ", status)
 	var res ResponseData
 	w.Status(status)
-	// if pageSet != nil {
-	res.Count = pageSet.Count
-	res.PageLimit = pageSet.PageLimit
-	res.PageNum = pageSet.PageNum
-	// }
+	if pageSet != nil {
+		res.Count = pageSet.Count
+		res.PageLimit = pageSet.PageLimit
+		res.PageNum = pageSet.PageNum
+	}
 	res.Data = payload
 	w.JSON(status, res)
 }
@@ -75,7 +75,7 @@ func BindingErr(c *gin.Context, exp interface{}) {
 	temp := map[string]interface{}{}
 	t := reflect.TypeOf(exp)
 	for i := 0; i < t.NumField(); i++ {
-		temp[t.Field(i).Name] = t.Field(i).Type
+		temp[t.Field(i).Name] = t.Field(i).Type.String()
 	}
 	fmt.Println(temp)
 	resp := map[string]interface{}{
