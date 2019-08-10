@@ -27,14 +27,11 @@ type CourseMP CourseMod
 func (P *CourseMP) SetBSON(raw bson.Raw) error {
 	return raw.Unmarshal(P)
 }
-func (P *CourseMP) ModName() string {
-	return "Course"
-}
 
-func CourseIF interface {
-	FetchCourse()
-}
-var modName = "Course"
+// func CourseIF interface {
+// 	FetchCourse()
+// }
+var course_modName = "Course"
 
 var jsonSchema = bson.M{
 	"$jsonSchema": bson.M{
@@ -74,7 +71,7 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		count, err := DBConn.C(modName).Find(&param).Count()
+		count, err := DBConn.C(course_modName).Find(&param).Count()
 		if err != nil {
 			log.Fatalln("error")
 			log.Fatalln(err)
@@ -83,12 +80,12 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 			return nil, nil, err
 		}
 		// fmt.Println("count:", count)
-		Q := DBConn.C(modName).Find(param)
+		Q := DBConn.C(course_modName).Find(param)
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit
 		} else {
-			Q = Q.Limit(common.QueryDefaultPageLimit) 
+			Q = Q.Limit(common.QueryDefaultPageLimit)
 			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
 		fmt.Println("req. pageNum", ps.PageNum)
@@ -117,10 +114,11 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 
 }
 
+// GetCourse : get one Course object
 func GetCourse(id string) (*CourseMod, error) {
 	if DBConn != nil {
 		var result *CourseMod
-		err := DBConn.C(modName).Find(bson.M{
+		err := DBConn.C(course_modName).Find(bson.M{
 			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
@@ -133,19 +131,20 @@ func GetCourse(id string) (*CourseMod, error) {
 	return nil, err
 }
 
+// CreateCourse : Create a Course Object
 func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
 		fmt.Println("hi create")
 		if cp.ID == nil {
-			temId := bson.ObjectId(string(oid.NewOID().Bytes()))
-			fmt.Println("temId:", temId.String())
-			cp.ID = &temId
+			temID := bson.ObjectId(string(oid.NewOID().Bytes()))
+			fmt.Println("temId:", temID.String())
+			cp.ID = &temID
 			fmt.Println(cp.ID)
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
-		err := DBConn.C(modName).Insert(&cp)
+		err := DBConn.C(course_modName).Insert(&cp)
 		if err != nil {
 			log.Fatal(err.Error())
 			return nil, err
@@ -156,6 +155,7 @@ func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 	return nil, err
 }
 
+// UpdateCourse : Update a Course Object
 func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
@@ -169,7 +169,7 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 		upNew := bson.M{}
 		bson.Unmarshal(temp, upNew)
 		Returned := CourseMod{}
-		_, err := DBConn.C(modName).Find(bson.M{"_id": Old.ID}).Apply(
+		_, err := DBConn.C(course_modName).Find(bson.M{"_id": Old.ID}).Apply(
 			mgo.Change{
 				Update:    bson.M{"$set": upNew},
 				ReturnNew: true,
@@ -188,9 +188,10 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 	return nil, err
 }
 
+// DeleteCourse : Delete a Course
 func DeleteCourse(cpid string) (bool, error) {
 	if DBConn != nil {
-		err := DBConn.C(modName).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
+		err := DBConn.C(course_modName).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
 		if err != nil {
 			log.Fatal("Got a real error:", err.Error())
 			return false, err
@@ -202,9 +203,10 @@ func DeleteCourse(cpid string) (bool, error) {
 
 }
 
+// TestCourse : Test Course is not existed
 func TestCourse(param map[string]interface{}) (bool, error) {
 	if DBConn != nil {
-		count, err := DBConn.C(modName).Find(&param).Count()
+		count, err := DBConn.C(course_modName).Find(&param).Count()
 		if err != nil {
 			return false, err
 		}
@@ -214,6 +216,7 @@ func TestCourse(param map[string]interface{}) (bool, error) {
 	return false, err
 }
 
+// CreateCourseFormat : Adv Create Course Object Format
 func CreateCourseFormat() (bool, error) {
 	if DBConn != nil {
 		result := bson.M{}
