@@ -1,11 +1,5 @@
 package model
 
-// import (
-// 	"time"
-
-// 	"gopkg.in/mgo.v2/bson"
-// )
-
 // type baseMod struct {
 // 	ID        *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 // 	CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
@@ -13,6 +7,8 @@ package model
 // }
 
 // type baseIf interface {
+// 	ModName() string
+
 // 	Init(...interface{})
 // 	InitByBsonMap(*bson.M)
 // 	InitByMap(map[string]interface{})
@@ -24,4 +20,6 @@ package model
 // 	Get(string) (bool, error)
 // 	Update() (interface{}, error)
 // 	Delete() (bool, error)
+
+// 	CreateSchema() (bool, error)
 // }

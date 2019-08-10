@@ -31,9 +31,9 @@ func (P *CourseMP) SetBSON(raw bson.Raw) error {
 // func CourseIF interface {
 // 	FetchCourse()
 // }
-var course_modName = "Course"
+var course_mod_name = "Course"
 
-var jsonSchema = bson.M{
+var course_json_schema = bson.M{
 	"$jsonSchema": bson.M{
 		"bsonType": "object",
 
@@ -71,7 +71,7 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		count, err := DBConn.C(course_modName).Find(&param).Count()
+		count, err := DBConn.C(course_mod_name).Find(&param).Count()
 		if err != nil {
 			log.Fatalln("error")
 			log.Fatalln(err)
@@ -80,7 +80,7 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 			return nil, nil, err
 		}
 		// fmt.Println("count:", count)
-		Q := DBConn.C(course_modName).Find(param)
+		Q := DBConn.C(course_mod_name).Find(param)
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit
@@ -118,7 +118,7 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 func GetCourse(id string) (*CourseMod, error) {
 	if DBConn != nil {
 		var result *CourseMod
-		err := DBConn.C(course_modName).Find(bson.M{
+		err := DBConn.C(course_mod_name).Find(bson.M{
 			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
@@ -144,7 +144,7 @@ func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
-		err := DBConn.C(course_modName).Insert(&cp)
+		err := DBConn.C(course_mod_name).Insert(&cp)
 		if err != nil {
 			log.Fatal(err.Error())
 			return nil, err
@@ -169,7 +169,7 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 		upNew := bson.M{}
 		bson.Unmarshal(temp, upNew)
 		Returned := CourseMod{}
-		_, err := DBConn.C(course_modName).Find(bson.M{"_id": Old.ID}).Apply(
+		_, err := DBConn.C(course_mod_name).Find(bson.M{"_id": Old.ID}).Apply(
 			mgo.Change{
 				Update:    bson.M{"$set": upNew},
 				ReturnNew: true,
@@ -191,7 +191,7 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 // DeleteCourse : Delete a Course
 func DeleteCourse(cpid string) (bool, error) {
 	if DBConn != nil {
-		err := DBConn.C(course_modName).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
+		err := DBConn.C(course_mod_name).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
 		if err != nil {
 			log.Fatal("Got a real error:", err.Error())
 			return false, err
@@ -206,7 +206,7 @@ func DeleteCourse(cpid string) (bool, error) {
 // TestCourse : Test Course is not existed
 func TestCourse(param map[string]interface{}) (bool, error) {
 	if DBConn != nil {
-		count, err := DBConn.C(course_modName).Find(&param).Count()
+		count, err := DBConn.C(course_mod_name).Find(&param).Count()
 		if err != nil {
 			return false, err
 		}
@@ -216,22 +216,22 @@ func TestCourse(param map[string]interface{}) (bool, error) {
 	return false, err
 }
 
-// CreateCourseFormat : Adv Create Course Object Format
-func CreateCourseFormat() (bool, error) {
-	if DBConn != nil {
-		result := bson.M{}
-		err := DBConn.Run(bson.M{
-			"createCollection": bson.M{
-				"validationAction": "warn",
-				"validator":        jsonSchema,
-			},
-		}, &result)
-		if err != nil {
-			return false, err
-		}
-		fmt.Println(result)
-		return true, nil
-	}
-	_, err := NotConn()
-	return false, err
-}
+// // CreateCourseFormat : Adv Create Course Object Format
+// func CreateCourseFormat() (bool, error) {
+// 	if DBConn != nil {
+// 		result := bson.M{}
+// 		err := DBConn.Run(bson.M{
+// 			"createCollection": bson.M{
+// 				"validationAction": "warn",
+// 				"validator":        course_json_schema,
+// 			},
+// 		}, &result)
+// 		if err != nil {
+// 			return false, err
+// 		}
+// 		fmt.Println(result)
+// 		return true, nil
+// 	}
+// 	_, err := NotConn()
+// 	return false, err
+// }

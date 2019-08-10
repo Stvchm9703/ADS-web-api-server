@@ -15,10 +15,45 @@ type DepartmentMod struct {
 	ID        *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 	DeptID    *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
 	DeptName  *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
-	Location  *LocationModP  `bson:"location,omitempty" json:"location,omitempty"`
+	Location  *LocationMod   `bson:"location,omitempty" json:"location,omitempty"`
 	CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
+
+type LocationMod struct {
+	Address *string `bson:"address,omitempty" json:"address,omitempty"`
+}
+
+// var dept_json_schema = bson.M{
+// 	"$jsonSchema": bson.M{
+// 		"bsonType": "object",
+// 		"properties": bson.M{
+// 			"_id": bson.M{
+// 				"bsonType":    "objectId",
+// 				"description": "reference id",
+// 			},
+// 			"dept_id": bson.M{
+// 				"bsonType":    "string",
+// 				"description": "department id",
+// 			},
+// 			"title": bson.M{
+// 				"description": "course title",
+// 			},
+// 			"level": bson.M{
+// 				"bsonType":    "int",
+// 				"description": "course level",
+// 			},
+// 			"created_at": bson.M{
+// 				"bsonType":    "date",
+// 				"description": "data created time",
+// 			},
+// 			"updated_at": bson.M{
+// 				"bsonType":    "date",
+// 				"description": "data last updated time",
+// 			},
+// 		},
+// 	},
+// }
 
 // dept_mod_name : model name
 var dept_mod_name = "Department"

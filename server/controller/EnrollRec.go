@@ -60,12 +60,6 @@ func GetEnrollList(c *gin.Context) {
 	// search
 	o := BindQuery(c.Request.URL.Query(), m.EnrollMod{})
 	fmt.Println("o", o)
-	// NOTE: test case query
-	// o = &bson.M{
-	// 	"level": bson.M{
-	// 		"$in": []float64{1.0, 1, 0, 2},
-	// 	},
-	// }
 	k, PS1, err2 := m.FetchEnroll(o, &PS)
 	fmt.Println(k, PS1, err2)
 	if err2 != nil {

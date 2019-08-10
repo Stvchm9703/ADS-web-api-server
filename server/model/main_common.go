@@ -10,6 +10,12 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+type PageMeta struct {
+	PageLimit int `json:"page_limit,omitempty"`
+	PageNum   int `json:"page_num,omitempty"`
+	Count     int `json:"count,omitempty"`
+}
+
 var DBSess *mgo.Session
 var DBConn *mgo.Database
 
@@ -35,10 +41,6 @@ func DisconnDB() (bool, error) {
 	return true, nil
 }
 
-func CreateDBTable(config *common.ConfigTemp) {
-
-}
-
 func NotConn() (*struct{}, error) {
 	fmt.Println(DBSess)
 	fmt.Println(DBConn)
@@ -48,8 +50,14 @@ func NotConn() (*struct{}, error) {
 	}
 }
 
-type PageMeta struct {
-	PageLimit int `json:"page_limit,omitempty"`
-	PageNum   int `json:"page_num,omitempty"`
-	Count     int `json:"count,omitempty"`
+func CreateDBTable(config *common.ConfigTemp) {
+	var structlist = []interface{}{
+		CourseMod{},
+		DepartmentMod{},
+		EnrollMod{},
+		LocationMod{},
+		OfferMod{},
+		StudentMod{},
+	}
+	
 }
