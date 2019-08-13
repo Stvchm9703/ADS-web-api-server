@@ -13,8 +13,8 @@ import (
 
 type OfferMod struct {
 	ID              *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
-	DepartmentID    *string 	   `bson:"department,omitempty" json:"department,omitempty"`
-	CourseID        *string        `bson:"course,omitempty" json:"course,omitempty"`
+	DepartmentID    *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
+	CourseID        *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
 	Year            *int           `bson:"year,omitempty" json:"year,omitempty"`
 	ClassSize       *int           `bson:"class_size,omitempty" json:"class_size,omitempty"`
 	AvailablePlaces *int           `bson:"available_places,omitempty" json:"available_places,omitempty"`

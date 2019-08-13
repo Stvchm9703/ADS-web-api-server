@@ -24,10 +24,6 @@ type CourseMod struct {
 
 type CourseMP CourseMod
 
-func (P *CourseMP) SetBSON(raw bson.Raw) error {
-	return raw.Unmarshal(P)
-}
-
 // func CourseIF interface {
 // 	FetchCourse()
 // }

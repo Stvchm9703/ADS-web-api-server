@@ -7,7 +7,6 @@ require (
 	github.com/ahl5esoft/golang-underscore v2.0.0+incompatible
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/coolbed/mgo-oid v0.0.0-20170627135709-d2b570933ac9
-	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-bongo/bongo v0.10.4
@@ -16,6 +15,7 @@ require (
 	github.com/manifoldco/promptui v0.3.2
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/maxwellhealth/go-dotaccess v0.0.0-20150208020959-ae070a2d2a38 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/spf13/cobra v0.0.5

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 	"time"
 	"webserver/server/common"
@@ -15,45 +15,10 @@ type DepartmentMod struct {
 	ID        *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 	DeptID    *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
 	DeptName  *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
-	Location  *LocationMod   `bson:"location,omitempty" json:"location,omitempty"`
+	Location  *string        `bson:"location,omitempty" json:"location,omitempty"`
 	CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
-
-type LocationMod struct {
-	Address *string `bson:"address,omitempty" json:"address,omitempty"`
-}
-
-// var dept_json_schema = bson.M{
-// 	"$jsonSchema": bson.M{
-// 		"bsonType": "object",
-// 		"properties": bson.M{
-// 			"_id": bson.M{
-// 				"bsonType":    "objectId",
-// 				"description": "reference id",
-// 			},
-// 			"dept_id": bson.M{
-// 				"bsonType":    "string",
-// 				"description": "department id",
-// 			},
-// 			"title": bson.M{
-// 				"description": "course title",
-// 			},
-// 			"level": bson.M{
-// 				"bsonType":    "int",
-// 				"description": "course level",
-// 			},
-// 			"created_at": bson.M{
-// 				"bsonType":    "date",
-// 				"description": "data created time",
-// 			},
-// 			"updated_at": bson.M{
-// 				"bsonType":    "date",
-// 				"description": "data last updated time",
-// 			},
-// 		},
-// 	},
-// }
 
 // dept_mod_name : model name
 var dept_mod_name = "Department"
@@ -62,17 +27,17 @@ var dept_mod_name = "Department"
 func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentMod, *PageMeta, error) {
 	var record []*DepartmentMod
 	nps := PageMeta{}
-	fmt.Println("req. params", param)
+	// fmt.Println("req. params", param)
 	if DBConn != nil {
 		count, err := DBConn.C(dept_mod_name).Find(&param).Count()
 		if err != nil {
-			log.Fatalln("error")
-			log.Fatalln(err)
-			log.Fatalln("param")
-			log.Fatalln(param)
+			// log.Fatalln("error")
+			// log.Fatalln(err)
+			// log.Fatalln("param")
+			// log.Fatalln(param)
 			return nil, nil, err
 		}
-		// fmt.Println("count:", count)
+		// // fmt.Println("count:", count)
 		Q := DBConn.C(dept_mod_name).Find(param)
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
@@ -81,7 +46,7 @@ func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentMod, *PageMe
 			Q = Q.Limit(common.QueryDefaultPageLimit)
 			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
-		fmt.Println("req. pageNum", ps.PageNum)
+		// fmt.Println("req. pageNum", ps.PageNum)
 		// defAULT : 1
 		if ps.PageNum > 0 {
 			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)
@@ -89,17 +54,17 @@ func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentMod, *PageMe
 		} else {
 			nps.PageNum = 1
 		}
-		fmt.Println("Q:", Q)
+		// fmt.Println("Q:", Q)
 		err1 := Q.All(&record)
 		if err1 != nil {
-			log.Fatalln("error")
-			log.Fatalln(err1)
-			log.Fatalln("param")
-			log.Fatalln(param)
+			// log.Fatalln("error")
+			// log.Fatalln(err1)
+			// log.Fatalln("param")
+			// log.Fatalln(param)
 			return nil, nil, err1
 		}
 		nps.Count = count
-		fmt.Println(record)
+		// fmt.Println(record)
 		return record, &nps, nil
 	}
 	_, err := NotConn()
@@ -128,12 +93,12 @@ func GetDepartment(id string) (*DepartmentMod, error) {
 func CreateDepartment(cp *DepartmentMod) (*DepartmentMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
-		fmt.Println("hi create")
+		// // fmt.Println("hi create")
 		if cp.ID == nil {
 			temID := bson.ObjectId(string(oid.NewOID().Bytes()))
-			fmt.Println("temId:", temID.String())
+			// // fmt.Println("temId:", temID.String())
 			cp.ID = &temID
-			fmt.Println(cp.ID)
+			// // fmt.Println(cp.ID)
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
@@ -169,8 +134,8 @@ func UpdateDepartment(Old *DepartmentMod, New *DepartmentMod) (*DepartmentMod, e
 			},
 			&Returned,
 		)
-		// fmt.Println("info", info)
-		// fmt.Println("Returned", Returned)
+		// // fmt.Println("info", info)
+		// // fmt.Println("Returned", Returned)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err

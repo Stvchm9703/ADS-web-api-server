@@ -1,0 +1,55 @@
+[
+{
+    "cursor": {
+        "firstBatch": [{
+            "name": "call_log",
+            "type": "collection"
+        }, {
+            "name": "department",
+            "type": "collection"
+        }, {
+            "name": "Course",
+            "type": "collection"
+        }, {
+            "name": "restaurants",
+            "type": "collection"
+        }, {
+            "name": "tutor1",
+            "type": "collection"
+        }, {
+            "name": "inventory",
+            "type": "collection"
+        }, {
+            "name": "restaurants_keys",
+            "type": "collection"
+        }],
+        "id": 0,
+        "ns": "scope_ADS.$cmd.listCollections"
+    },
+    "ok": 1
+}
+,
+{
+    "OK": 1,
+    "WaitedMS": null,
+    "Cursor": {
+        "ID": 0,
+        "NS": "scope_ADS.$cmd.listCollections",
+        "FirstBatch": [{
+            "name": "call_log",
+            "type": "collection"
+        }, {
+            "name": "Department",
+            "type": "collection"
+        }, {
+            "name": "restaurants",
+            "type": "collection"
+        }, {
+            "name": "Enroll",
+            "type": "collection"
+        }, {
+            "name": "restaurants_keys",
+            "type": "collection"
+        }]
+    }
+}]

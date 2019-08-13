@@ -81,6 +81,7 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 		v1.POST("/student/update", c.UpdateStudent)
 		v1.POST("/student/u", c.UpdateStudent)
 
+		// v1.Get("/v/course/list", v.)
 		log.Println("v1")
 		log.Printf("Group:  %+v", v1)
 		log.Printf("Handler:  %+v", v1.Handlers)

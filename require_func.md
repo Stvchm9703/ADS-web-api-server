@@ -13,6 +13,7 @@ Courses (
     Title, 
     Level
 );
+
 Offer(
     DeptID, 
     CourseID, 
@@ -20,11 +21,13 @@ Offer(
     ClassSize, 
     AvailablePlaces
 );
+
 Students (
     StudentID, 
     StuName, 
     DOB
 );
+
 Enrolled(
     StudentID, 
     Year, 

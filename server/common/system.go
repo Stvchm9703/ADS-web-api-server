@@ -21,8 +21,9 @@ var ServerConf = struct {
 }
 
 type ErrorMessage struct {
-	When time.Time
-	What string
+	When     time.Time
+	What     string
+	ErrorObj interface{}
 }
 
 func (e ErrorMessage) Error() string {
