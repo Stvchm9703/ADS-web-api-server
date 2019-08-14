@@ -176,7 +176,8 @@ func buildFmJson(t map[string]interface{}, ref *reflect.StructField) bson.M {
 					switch ref.Type.String() {
 					case "struct", "interface":
 						fmt.Println("igorn case")
-					case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint":
+					case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint",
+						"*int", "*int32", "*int64", "*float32", "*float64", "*uint64", "*uint32", "*uint":
 						if reflect.TypeOf(v).String() == "[]interface {}" {
 							array := []float64{}
 							for _, vv := range v.([]interface{}) {
@@ -217,27 +218,31 @@ func buildFmJson(t map[string]interface{}, ref *reflect.StructField) bson.M {
 			case "gte", "lte", "lt", "gt":
 				{ // number-value
 					switch ref.Type.String() {
-					case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint":
+					case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint",
+						"*int", "*int32", "*int64", "*float32", "*float64", "*uint64", "*uint32", "*uint":
 						if reflect.TypeOf(v).String() == "[]interface {}" {
-							fmt.Print("error, array type cannot use in gt/lt, only get max/min")
+							fmt.Println("error, array type cannot use in gt/lt, only get max/min")
 							if k == "gte" || k == "gt" {
 								cond["$"+k] = maxVal(v.([]interface{}))
 							} else {
 								cond["$"+k] = minVal(v.([]interface{}))
 							}
+							fmt.Println("cond[$k]", cond["$"+k])
 						} else {
 							cond["$"+k] = v.(float64)
 						}
 					default:
-						fmt.Print("error, string type cannot use in gt/lt")
+						fmt.Println("refTyper:", ref.Type.String())
+						fmt.Println("error, string / interface/ struct type cannot use in gt/lt")
 					}
 				}
 			case "eq", "neq":
 				{
 					switch ref.Type.String() {
-					case "struct", "interface":
+					case "struct", "interface", "*struct", "*interface":
 						cond["$"+k] = v
-					case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint":
+					case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint",
+						"*int", "*int32", "*int64", "*float32", "*float64", "*uint64", "*uint32", "*uint":
 						if reflect.TypeOf(v).String() == "[]interface {}" {
 							fmt.Println("warn, eq/neq is not good for array, use in/nin")
 							array := []float64{}
@@ -310,7 +315,8 @@ func buildFmBson(q string, ref *reflect.StructField) bson.M {
 		var val interface{}
 		var err error
 		switch ref.Type.String() {
-		case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint":
+		case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint",
+			"*int", "*int32", "*int64", "*float32", "*float64", "*uint64", "*uint32", "*uint":
 			if len(arrVal) > 0 {
 				val = make([]float64, len(arrVal))
 				for vk, vv := range arrVal {
@@ -320,7 +326,7 @@ func buildFmBson(q string, ref *reflect.StructField) bson.M {
 				val, err = strconv.ParseFloat(tem[1], 64)
 			}
 
-		case "string":
+		case "string", "*string":
 			if len(arrVal) > 0 {
 				val = arrVal
 			} else {

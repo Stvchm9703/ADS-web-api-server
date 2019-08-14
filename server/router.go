@@ -6,6 +6,7 @@ import (
 	conf "webserver/server/common"
 
 	c "webserver/server/controller"
+	v "webserver/server/controller/viewCtrl"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
@@ -69,7 +70,7 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 		v1.POST("/offer/update", c.UpdateOffer)
 		v1.POST("/offer/u", c.UpdateOffer)
 
-		// department
+		// student
 		v1.GET("/student/list", c.GetStudentList)
 		v1.GET("/student/l", c.GetStudentList)
 		v1.GET("/student/get/:id", c.GetStudent)
@@ -81,7 +82,18 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 		v1.POST("/student/update", c.UpdateStudent)
 		v1.POST("/student/u", c.UpdateStudent)
 
-		// v1.Get("/v/course/list", v.)
+		//view model : course-offer
+		v1.GET("/v/course/list", v.GetCourseList)
+		v1.GET("/v/course/l", v.GetCourseList)
+		v1.GET("/v/course/get/:id", v.GetCourse)
+		v1.GET("/v/course/g/:id", v.GetCourse)
+
+		// view model : Student-Enrolled
+		v1.GET("/v/std_enroll/list", v.GetEnrollList)
+		v1.GET("/v/std_enroll/l", v.GetEnrollList)
+		v1.GET("/v/std_enroll/get/:id", v.GetEnroll)
+		v1.GET("/v/std_enroll/g/:id", v.GetEnroll)
+
 		log.Println("v1")
 		log.Printf("Group:  %+v", v1)
 		log.Printf("Handler:  %+v", v1.Handlers)
