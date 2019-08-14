@@ -1,0 +1,1 @@
+go run main.go import -c=config.yaml 

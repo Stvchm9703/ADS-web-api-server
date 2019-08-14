@@ -26,7 +26,7 @@ var importCMDInput = struct {
 var importCMD = &cobra.Command{
 	Use:   "import",
 	Short: "import the mongodb server of webserver",
-	Long:  `webserver server start run `,
+	Long:  `import data that related to this webserver to mongodb server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("webserver Static Site Generator v0.9 -- HEAD")
 		if len(args) > 0 {
@@ -42,6 +42,7 @@ var importCMD = &cobra.Command{
 		}
 		log.Println(configPoint)
 		log.Println(importCMDInput.mode)
+		log.Println("refDataPath:", importCMDInput.refDataPath)
 		if err == nil {
 			Wb.ServerImportProc(configPoint, &importCMDInput.refDataPath)
 		} else {

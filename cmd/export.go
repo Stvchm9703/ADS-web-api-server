@@ -42,6 +42,7 @@ var exportCMD = &cobra.Command{
 		}
 		log.Println(configPoint)
 		log.Println(exportCMDInput.mode)
+		log.Println("refDataPath:", exportCMDInput.refDataPath)
 		if err == nil {
 			Wb.ServerExportProc(configPoint, &exportCMDInput.refDataPath)
 		} else {
