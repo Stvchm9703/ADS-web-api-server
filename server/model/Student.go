@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"log"
 	"time"
 	"webserver/server/common"
 
@@ -30,10 +29,10 @@ func FetchStudent(param interface{}, ps *PageMeta) ([]*StudentMod, *PageMeta, er
 	if DBConn != nil {
 		count, err := DBConn.C(student_mod_name).Find(&param).Count()
 		if err != nil {
-			log.Fatalln("error")
-			log.Fatalln(err)
-			log.Fatalln("param")
-			log.Fatalln(param)
+			fmt.Println("error")
+			fmt.Println(err)
+			fmt.Println("param")
+			fmt.Println(param)
 			return nil, nil, err
 		}
 		// fmt.Println("count:", count)
@@ -56,10 +55,10 @@ func FetchStudent(param interface{}, ps *PageMeta) ([]*StudentMod, *PageMeta, er
 		fmt.Println("Q:", Q)
 		err1 := Q.All(&record)
 		if err1 != nil {
-			log.Fatalln("error")
-			log.Fatalln(err1)
-			log.Fatalln("param")
-			log.Fatalln(param)
+			fmt.Println("error")
+			fmt.Println(err1)
+			fmt.Println("param")
+			fmt.Println(param)
 			return nil, nil, err1
 		}
 		nps.Count = count
@@ -79,7 +78,7 @@ func GetStudent(id string) (*StudentMod, error) {
 			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 			return nil, err
 		}
 		return result, nil
@@ -103,7 +102,7 @@ func CreateStudent(cp *StudentMod) (*StudentMod, error) {
 		cp.UpdatedAt = &tnow
 		err := DBConn.C(student_mod_name).Insert(&cp)
 		if err != nil {
-			log.Fatal(err.Error())
+			fmt.Println(err.Error())
 			return nil, err
 		}
 		return cp, nil
@@ -136,7 +135,7 @@ func UpdateStudent(Old *StudentMod, New *StudentMod) (*StudentMod, error) {
 		// fmt.Println("info", info)
 		// fmt.Println("Returned", Returned)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 			return nil, err
 		}
 		return &Returned, nil
@@ -150,7 +149,7 @@ func DeleteStudent(cpid string) (bool, error) {
 	if DBConn != nil {
 		err := DBConn.C(student_mod_name).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
 		if err != nil {
-			log.Fatal("Got a real error:", err.Error())
+			fmt.Println("Got a real error:", err.Error())
 			return false, err
 		}
 		return true, nil

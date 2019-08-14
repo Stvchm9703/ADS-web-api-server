@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+
+	// // "log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -47,7 +48,7 @@ func ConnectDB(temp *common.ConfigTemp) (*mgo.Session, error) {
 		Password: temp.Database.Password,
 	})
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 		return nil, err
 	}
 	DBConn = DBSess.DB(temp.Database.Database)

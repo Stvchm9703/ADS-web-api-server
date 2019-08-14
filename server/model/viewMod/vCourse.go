@@ -111,7 +111,7 @@ func GetVCourseOffer(id string) (*VCourseOfferMod, error) {
 			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
-			// log.Fatal(err)
+			// fmt.Println(err)
 			return nil, err
 		}
 		return result, nil

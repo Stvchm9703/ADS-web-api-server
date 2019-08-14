@@ -3,7 +3,8 @@ package viewMod
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+
+	// // "log"
 	"time"
 	"webserver/server/common"
 	m "webserver/server/model"
@@ -120,7 +121,7 @@ func GetVStudentEnrolled(id string) (*VStudentEnrolledMod, error) {
 			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 			return nil, err
 		}
 		return result, nil

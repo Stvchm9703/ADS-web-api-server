@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"log"
+	// "log"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -29,37 +30,37 @@ type CourseMP CourseMod
 // }
 var course_mod_name = "Course"
 
-var course_json_schema = bson.M{
-	"$jsonSchema": bson.M{
-		"bsonType": "object",
+// var course_json_schema = bson.M{
+// 	"$jsonSchema": bson.M{
+// 		"bsonType": "object",
 
-		"properties": bson.M{
-			"_id": bson.M{
-				"bsonType":    "objectId",
-				"description": "reference id",
-			},
-			"course_id": bson.M{
-				"bsonType":    "string",
-				"description": "course id",
-			},
-			"title": bson.M{
-				"description": "course title",
-			},
-			"level": bson.M{
-				"bsonType":    "int",
-				"description": "course level",
-			},
-			"created_at": bson.M{
-				"bsonType":    "date",
-				"description": "data created time",
-			},
-			"updated_at": bson.M{
-				"bsonType":    "date",
-				"description": "data last updated time",
-			},
-		},
-	},
-}
+// 		"properties": bson.M{
+// 			"_id": bson.M{
+// 				"bsonType":    "objectId",
+// 				"description": "reference id",
+// 			},
+// 			"course_id": bson.M{
+// 				"bsonType":    "string",
+// 				"description": "course id",
+// 			},
+// 			"title": bson.M{
+// 				"description": "course title",
+// 			},
+// 			"level": bson.M{
+// 				"bsonType":    "int",
+// 				"description": "course level",
+// 			},
+// 			"created_at": bson.M{
+// 				"bsonType":    "date",
+// 				"description": "data created time",
+// 			},
+// 			"updated_at": bson.M{
+// 				"bsonType":    "date",
+// 				"description": "data last updated time",
+// 			},
+// 		},
+// 	},
+// }
 
 // FetchCourse : GEt the Course list
 func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
@@ -69,10 +70,10 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 	if DBConn != nil {
 		count, err := DBConn.C(course_mod_name).Find(&param).Count()
 		if err != nil {
-			log.Fatalln("error")
-			log.Fatalln(err)
-			log.Fatalln("param")
-			log.Fatalln(param)
+			log.Println("error")
+			log.Println(err)
+			log.Println("param")
+			log.Println(param)
 			return nil, nil, err
 		}
 		// fmt.Println("count:", count)
@@ -95,10 +96,10 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 		fmt.Println("Q:", Q)
 		err1 := Q.All(&record)
 		if err1 != nil {
-			log.Fatalln("error")
-			log.Fatalln(err1)
-			log.Fatalln("param")
-			log.Fatalln(param)
+			fmt.Println("error")
+			fmt.Println(err1)
+			fmt.Println("param")
+			fmt.Println(param)
 			return nil, nil, err1
 		}
 		nps.Count = count
@@ -118,7 +119,7 @@ func GetCourse(id string) (*CourseMod, error) {
 			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 			return nil, err
 		}
 		return result, nil
@@ -142,7 +143,7 @@ func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 		cp.UpdatedAt = &tnow
 		err := DBConn.C(course_mod_name).Insert(&cp)
 		if err != nil {
-			log.Fatal(err.Error())
+			fmt.Println(err.Error())
 			return nil, err
 		}
 		return cp, nil
@@ -175,7 +176,7 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 		// fmt.Println("info", info)
 		// fmt.Println("Returned", Returned)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 			return nil, err
 		}
 		return &Returned, nil
@@ -189,7 +190,7 @@ func DeleteCourse(cpid string) (bool, error) {
 	if DBConn != nil {
 		err := DBConn.C(course_mod_name).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
 		if err != nil {
-			log.Fatal("Got a real error:", err.Error())
+			fmt.Println("Got a real error:", err.Error())
 			return false, err
 		}
 		return true, nil

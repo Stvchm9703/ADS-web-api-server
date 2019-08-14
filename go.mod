@@ -15,7 +15,6 @@ require (
 	github.com/manifoldco/promptui v0.3.2
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/maxwellhealth/go-dotaccess v0.0.0-20150208020959-ae070a2d2a38 // indirect
-	github.com/mitchellh/mapstructure v1.1.2
 	github.com/oleiade/reflections v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/spf13/cobra v0.0.5

@@ -15,8 +15,8 @@ import (
 
 type ResponseData struct {
 	model.PageMeta
-	Status int
-	Data   interface{}
+	Status int         `json:"status"`
+	Data   interface{} `json:"data"`
 }
 
 type RequestData struct {
@@ -306,7 +306,7 @@ func buildFmBson(q string, ref *reflect.StructField) bson.M {
 		fmt.Println(i, ":strcon:", strcon[i])
 		tem := strings.Split(strcon[i], ":")
 		arrVal := []string{}
-		if strings.Contains(tem[1], "[") && strings.Contains(tem[1], "]") {
+		if strings.Contains(tem[1], "[]") {
 			len1 := len([]rune(tem[1]))
 			p1 := tem[1]
 			arrVal = strings.Split(p1[1:len1-1], ",")
@@ -341,8 +341,14 @@ func buildFmBson(q string, ref *reflect.StructField) bson.M {
 		}
 		// NOTE: check the tem[0] type
 		if cond[tem[0]] == nil {
-			cond[tem[0]] = val
+			vt := reflect.TypeOf(val).String()
+			if (tem[0] == "$in" || tem[0] == "$nin") && strings.Contains(vt, "[]") == false {
+				cond[tem[0]] = []interface{}{val}
+			} else {
+				cond[tem[0]] = val
+			}
 		}
+
 	}
 	return cond
 }
