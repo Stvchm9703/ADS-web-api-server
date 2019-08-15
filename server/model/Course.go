@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"log"
+
 	// "log"
 	"time"
 
@@ -19,48 +19,12 @@ type CourseMod struct {
 	CourseID  *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
 	Title     *string        `bson:"title,omitempty" json:"title,omitempty"`
 	Level     *int           `bson:"level,omitempty" json:"level,omitempty"`
+	Offers    []*OfferMod    `bson:"offers,omitempty" json:"offers,omitempty"`
 	CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
-type CourseMP CourseMod
-
-// func CourseIF interface {
-// 	FetchCourse()
-// }
 var course_mod_name = "Course"
-
-// var course_json_schema = bson.M{
-// 	"$jsonSchema": bson.M{
-// 		"bsonType": "object",
-
-// 		"properties": bson.M{
-// 			"_id": bson.M{
-// 				"bsonType":    "objectId",
-// 				"description": "reference id",
-// 			},
-// 			"course_id": bson.M{
-// 				"bsonType":    "string",
-// 				"description": "course id",
-// 			},
-// 			"title": bson.M{
-// 				"description": "course title",
-// 			},
-// 			"level": bson.M{
-// 				"bsonType":    "int",
-// 				"description": "course level",
-// 			},
-// 			"created_at": bson.M{
-// 				"bsonType":    "date",
-// 				"description": "data created time",
-// 			},
-// 			"updated_at": bson.M{
-// 				"bsonType":    "date",
-// 				"description": "data last updated time",
-// 			},
-// 		},
-// 	},
-// }
 
 // FetchCourse : GEt the Course list
 func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
@@ -70,13 +34,8 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 	if DBConn != nil {
 		count, err := DBConn.C(course_mod_name).Find(&param).Count()
 		if err != nil {
-			log.Println("error")
-			log.Println(err)
-			log.Println("param")
-			log.Println(param)
 			return nil, nil, err
 		}
-		// fmt.Println("count:", count)
 		Q := DBConn.C(course_mod_name).Find(param)
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
@@ -85,21 +44,14 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 			Q = Q.Limit(common.QueryDefaultPageLimit)
 			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
-		fmt.Println("req. pageNum", ps.PageNum)
-		// defAULT : 1
 		if ps.PageNum > 0 {
 			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)
 			nps.PageNum = ps.PageNum
 		} else {
 			nps.PageNum = 1
 		}
-		fmt.Println("Q:", Q)
 		err1 := Q.All(&record)
 		if err1 != nil {
-			fmt.Println("error")
-			fmt.Println(err1)
-			fmt.Println("param")
-			fmt.Println(param)
 			return nil, nil, err1
 		}
 		nps.Count = count
@@ -158,7 +110,6 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 		tnow := time.Now()
 		New.UpdatedAt = &tnow
 		if New.CreatedAt != Old.CreatedAt {
-			// Note: prevent edited
 			New.CreatedAt = Old.CreatedAt
 		}
 
@@ -173,10 +124,7 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 			},
 			&Returned,
 		)
-		// fmt.Println("info", info)
-		// fmt.Println("Returned", Returned)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
 		return &Returned, nil
@@ -212,23 +160,3 @@ func TestCourse(param map[string]interface{}) (bool, error) {
 	_, err := NotConn()
 	return false, err
 }
-
-// // CreateCourseFormat : Adv Create Course Object Format
-// func CreateCourseFormat() (bool, error) {
-// 	if DBConn != nil {
-// 		result := bson.M{}
-// 		err := DBConn.Run(bson.M{
-// 			"createCollection": bson.M{
-// 				"validationAction": "warn",
-// 				"validator":        course_json_schema,
-// 			},
-// 		}, &result)
-// 		if err != nil {
-// 			return false, err
-// 		}
-// 		fmt.Println(result)
-// 		return true, nil
-// 	}
-// 	_, err := NotConn()
-// 	return false, err
-// }

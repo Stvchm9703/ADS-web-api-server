@@ -17,6 +17,7 @@ type DepartmentMod struct {
 	DeptID    *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
 	DeptName  *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
 	Location  *string        `bson:"location,omitempty" json:"location,omitempty"`
+	Courses   []*CourseMod   `bson:"courses,omitempty" json:"courses,omitempty"`
 	CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
@@ -28,17 +29,11 @@ var dept_mod_name = "Department"
 func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentMod, *PageMeta, error) {
 	var record []*DepartmentMod
 	nps := PageMeta{}
-	// fmt.Println("req. params", param)
 	if DBConn != nil {
 		count, err := DBConn.C(dept_mod_name).Find(&param).Count()
 		if err != nil {
-			// fmt.Println("error")
-			// fmt.Println(err)
-			// fmt.Println("param")
-			// fmt.Println(param)
 			return nil, nil, err
 		}
-		// // fmt.Println("count:", count)
 		Q := DBConn.C(dept_mod_name).Find(param)
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
@@ -47,25 +42,17 @@ func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentMod, *PageMe
 			Q = Q.Limit(common.QueryDefaultPageLimit)
 			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
-		// fmt.Println("req. pageNum", ps.PageNum)
-		// defAULT : 1
 		if ps.PageNum > 0 {
 			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)
 			nps.PageNum = ps.PageNum
 		} else {
 			nps.PageNum = 1
 		}
-		// fmt.Println("Q:", Q)
 		err1 := Q.All(&record)
 		if err1 != nil {
-			// fmt.Println("error")
-			// fmt.Println(err1)
-			// fmt.Println("param")
-			// fmt.Println(param)
 			return nil, nil, err1
 		}
 		nps.Count = count
-		// fmt.Println(record)
 		return record, &nps, nil
 	}
 	_, err := NotConn()
@@ -94,12 +81,9 @@ func GetDepartment(id string) (*DepartmentMod, error) {
 func CreateDepartment(cp *DepartmentMod) (*DepartmentMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
-		// // fmt.Println("hi create")
 		if cp.ID == nil {
 			temID := bson.ObjectId(string(oid.NewOID().Bytes()))
-			// // fmt.Println("temId:", temID.String())
 			cp.ID = &temID
-			// // fmt.Println(cp.ID)
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
@@ -120,10 +104,8 @@ func UpdateDepartment(Old *DepartmentMod, New *DepartmentMod) (*DepartmentMod, e
 		tnow := time.Now()
 		New.UpdatedAt = &tnow
 		if New.CreatedAt != Old.CreatedAt {
-			// Note: prevent edited
 			New.CreatedAt = Old.CreatedAt
 		}
-
 		temp, _ := bson.Marshal(New)
 		upNew := bson.M{}
 		bson.Unmarshal(temp, upNew)
@@ -135,8 +117,6 @@ func UpdateDepartment(Old *DepartmentMod, New *DepartmentMod) (*DepartmentMod, e
 			},
 			&Returned,
 		)
-		// // fmt.Println("info", info)
-		// // fmt.Println("Returned", Returned)
 		if err != nil {
 			fmt.Println(err)
 			return nil, err

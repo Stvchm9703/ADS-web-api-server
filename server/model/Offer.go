@@ -12,8 +12,6 @@ import (
 
 type OfferMod struct {
 	ID              *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
-	DepartmentID    *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
-	CourseID        *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
 	Year            *int           `bson:"year,omitempty" json:"year,omitempty"`
 	ClassSize       *int           `bson:"class_size,omitempty" json:"class_size,omitempty"`
 	AvailablePlaces *int           `bson:"available_places,omitempty" json:"available_places,omitempty"`
@@ -31,13 +29,8 @@ func FetchOffer(param interface{}, ps *PageMeta) ([]*OfferMod, *PageMeta, error)
 	if DBConn != nil {
 		count, err := DBConn.C(offer_mod_name).Find(&param).Count()
 		if err != nil {
-			fmt.Println("error")
-			fmt.Println(err)
-			fmt.Println("param")
-			fmt.Println(param)
 			return nil, nil, err
 		}
-		// fmt.Println("count:", count)
 		Q := DBConn.C(offer_mod_name).Find(param)
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
@@ -46,25 +39,17 @@ func FetchOffer(param interface{}, ps *PageMeta) ([]*OfferMod, *PageMeta, error)
 			Q = Q.Limit(common.QueryDefaultPageLimit)
 			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
 		}
-		fmt.Println("req. pageNum", ps.PageNum)
-		// defAULT : 1
 		if ps.PageNum > 0 {
 			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)
 			nps.PageNum = ps.PageNum
 		} else {
 			nps.PageNum = 1
 		}
-		fmt.Println("Q:", Q)
 		err1 := Q.All(&record)
 		if err1 != nil {
-			fmt.Println("error")
-			fmt.Println(err1)
-			fmt.Println("param")
-			fmt.Println(param)
 			return nil, nil, err1
 		}
 		nps.Count = count
-		fmt.Println(record)
 		return record, &nps, nil
 	}
 	_, err := NotConn()
@@ -93,7 +78,6 @@ func GetOffer(id string) (*OfferMod, error) {
 func CreateOffer(cp *OfferMod) (*OfferMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
-		fmt.Println("hi create")
 		if cp.ID == nil {
 			temID := bson.ObjectId(string(oid.NewOID().Bytes()))
 			fmt.Println("temId:", temID.String())

@@ -72,29 +72,35 @@ func NotConn() (*struct{}, error) {
 func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 	if DBConn != nil {
 		var structlist = []interface{}{
-			CourseMod{},
+			// CourseMod{},
 			DepartmentMod{},
-			EnrollMod{},
-			OfferMod{},
+			// EnrollMod{},
+			// OfferMod{},
 			StudentMod{},
 		}
 		tmpBD := []bson.M{}
 		for k, v := range structlist {
 			fmt.Println("k", k)
-			tmpProp := bson.M{}
 			// temp := map[string]interface{}{}
+			// tmpProp := bson.M{}
 			r := reflect.TypeOf(v)
-			for ri := 0; ri < r.NumField(); ri++ {
-				smp := strings.Split(r.Field(ri).Tag.Get("bson"), ",")[0]
-				tmpProp[smp] = bson.M{
-					"bsonType":    typeConv(r.Field(ri)),
-					"description": "Go System AutoGen : " + r.Field(ri).Name,
-				}
-				// fmt.Println("tmpProp[smp]:")
-				// fmt.Println(tmpProp[smp])
-			}
+			// for ri := 0; ri < r.NumField(); ri++ {
+			// 	smp := strings.Split(r.Field(ri).Tag.Get("bson"), ",")[0]
+			// 	ftmp := typeConv(r.Field(ri))
+			// 	tmpProp[smp] = bson.M{
+			// 		"bsonType":    ftmp,
+			// 		"description": "Go System AutoGen : " + r.Field(ri).Name,
+			// 	}
+			// 	if ftmp == "object" || ftmp == "array" {
+
+			// 	}
+			// 	fmt.Println("tmpProp[smp]:")
+			// 	fmt.Println(tmpProp[smp])
+			// }
 			// fmt.Println("tmpProp:")
 			// fmt.Println()
+
+			tmpProp := createBMap(v)
 
 			// fmt.Println(tmpProp)
 			mod_name := strings.Replace(r.Name(), "Mod", "", -1)
@@ -188,6 +194,50 @@ func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 	}
 	_, err := NotConn()
 	return false, err
+}
+
+func createBMap(v interface{}) bson.M {
+	r := reflect.TypeOf(v)
+	vr := reflect.ValueOf(v)
+	tmpProp := bson.M{}
+	for ri := 0; ri < r.NumField(); ri++ {
+		smp := strings.Split(r.Field(ri).Tag.Get("bson"), ",")[0]
+		ftmp := typeConv(r.Field(ri))
+		f := r.Field(ri)
+		fmt.Println(f.Type.String())
+		fmt.Println("ftmp", ftmp)
+		if ftmp == "object" {
+			tt := reflect.ValueOf(r.Field(ri).Type.Elem())
+			xx := reflect.ValueOf(vr.Field(ri).Addr().Interface())
+			fmt.Println("tt", tt)
+			fmt.Println("xx", xx)
+			tmpProp[smp] = bson.M{
+				"bsonType":    ftmp,
+				"description": "Go System AutoGen : " + r.Field(ri).Name,
+				"properties":  createBMap(tt),
+			}
+		} else if ftmp == "array" {
+			tt := reflect.ValueOf(r.Field(ri).Type.Elem().Elem())
+			xx := (vr.Field(ri).Addr())
+			fmt.Println("tt", tt)
+			fmt.Println("xx", xx)
+			tmpProp[smp] = bson.M{
+				"bsonType":    ftmp,
+				"description": "Go System AutoGen : " + r.Field(ri).Name,
+				"properties":  createBMap(tt),
+			}
+		} else {
+			tmpProp[smp] = bson.M{
+				"bsonType":    ftmp,
+				"description": "Go System AutoGen : " + r.Field(ri).Name,
+			}
+		}
+		fmt.Println("tmpProp[smp]:")
+		fmt.Println(tmpProp[smp])
+	}
+	fmt.Println("tmpProp:")
+	fmt.Println()
+	return tmpProp
 }
 
 func typeConv(t reflect.StructField) string {
@@ -298,17 +348,6 @@ func ExportData(targetPath *string) (bool, error) {
 
 		failList := []map[string]interface{}{}
 		for k := 0; k < len(tmpBD); k++ {
-			// jsonFile, err := os.Open(filepath.Join(*targetPath, tmpBD[k]+".json"))
-			// if err != nil {
-			// 	fmt.Println(err)
-			// 	return false, err
-			// }
-			// fmt.Printf("Successfully Opened %v.json", tmpBD[k])
-			// byteValue, _ := ioutil.ReadAll(jsonFile)
-			// fil := []map[string]interface{}{}
-			// json.Unmarshal(byteValue, &fil)
-			// fmt.Println("fil:\n\t", fil)
-			// jsonFile.Close()
 			raw := []bson.M{}
 			err := DBConn.C(tmpBD[k]).Find(nil).All(&raw)
 			if err != nil {

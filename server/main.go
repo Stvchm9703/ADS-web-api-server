@@ -10,7 +10,6 @@ import (
 	// "webserver"
 	conf "webserver/server/common"
 	"webserver/server/model"
-	"webserver/server/model/viewMod"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-bongo/bongo"
@@ -68,14 +67,14 @@ func ServerInitProc(configPara *conf.ConfigTemp) {
 	fmt.Println("r:", r, "\n\te:", e)
 	time.Sleep(750 * time.Millisecond)
 
-	fmt.Println("create view:")
-	r, e = viewMod.CreateSchemaVStudentEnroll()
-	fmt.Println("r:", r, "\n\te:", e)
-	time.Sleep(750 * time.Millisecond)
+	// fmt.Println("create view:")
+	// r, e = viewMod.CreateSchemaVStudentEnroll()
+	// fmt.Println("r:", r, "\n\te:", e)
+	// time.Sleep(750 * time.Millisecond)
 
-	r, e = viewMod.CreateSchemaVCourseOffer()
-	fmt.Println("r:", r, "\n\te:", e)
-	time.Sleep(750 * time.Millisecond)
+	// r, e = viewMod.CreateSchemaVCourseOffer()
+	// fmt.Println("r:", r, "\n\te:", e)
+	// time.Sleep(750 * time.Millisecond)
 
 	time.Sleep(750 * time.Millisecond)
 	DB.Close()
