@@ -36,6 +36,13 @@ type MgoCursorRes struct {
 
 var DBSess *mgo.Session
 var DBConn *mgo.Database
+var refstructlist = []interface{}{
+	CourseMod{},
+	DepartmentMod{},
+	EnrollMod{},
+	OfferMod{},
+	StudentMod{},
+}
 
 func ConnectDB(temp *common.ConfigTemp) (*mgo.Session, error) {
 	// CreateDBTable(temp)
@@ -72,10 +79,7 @@ func NotConn() (*struct{}, error) {
 func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 	if DBConn != nil {
 		var structlist = []interface{}{
-			// CourseMod{},
 			DepartmentMod{},
-			// EnrollMod{},
-			// OfferMod{},
 			StudentMod{},
 		}
 		tmpBD := []bson.M{}
@@ -198,34 +202,37 @@ func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 
 func createBMap(v interface{}) bson.M {
 	r := reflect.TypeOf(v)
-	vr := reflect.ValueOf(v)
 	tmpProp := bson.M{}
 	for ri := 0; ri < r.NumField(); ri++ {
 		smp := strings.Split(r.Field(ri).Tag.Get("bson"), ",")[0]
 		ftmp := typeConv(r.Field(ri))
-		f := r.Field(ri)
-		fmt.Println(f.Type.String())
-		fmt.Println("ftmp", ftmp)
+		// SECTION
 		if ftmp == "object" {
-			tt := reflect.ValueOf(r.Field(ri).Type.Elem())
-			xx := reflect.ValueOf(vr.Field(ri).Addr().Interface())
-			fmt.Println("tt", tt)
-			fmt.Println("xx", xx)
+			xx := reflect.New(r.Field(ri).Type).Elem().Interface()
+			ccc := reflect.Type(r.Field(ri).Type).Kind()
+
+			if ccc == reflect.Ptr {
+				xx = reflect.New(r.Field(ri).Type.Elem()).Elem().Interface()
+			}
 			tmpProp[smp] = bson.M{
 				"bsonType":    ftmp,
 				"description": "Go System AutoGen : " + r.Field(ri).Name,
-				"properties":  createBMap(tt),
+				"properties":  createBMap(xx),
 			}
 		} else if ftmp == "array" {
-			tt := reflect.ValueOf(r.Field(ri).Type.Elem().Elem())
-			xx := (vr.Field(ri).Addr())
-			fmt.Println("tt", tt)
-			fmt.Println("xx", xx)
+
+			xx := reflect.New(r.Field(ri).Type.Elem()).Elem().Interface()
+			ccc := reflect.Type(r.Field(ri).Type.Elem()).Kind()
+
+			if ccc == reflect.Ptr {
+				xx = reflect.New(r.Field(ri).Type.Elem().Elem()).Elem().Interface()
+			}
 			tmpProp[smp] = bson.M{
 				"bsonType":    ftmp,
 				"description": "Go System AutoGen : " + r.Field(ri).Name,
-				"properties":  createBMap(tt),
+				"properties":  createBMap(xx),
 			}
+			// SECTION
 		} else {
 			tmpProp[smp] = bson.M{
 				"bsonType":    ftmp,
@@ -235,8 +242,8 @@ func createBMap(v interface{}) bson.M {
 		fmt.Println("tmpProp[smp]:")
 		fmt.Println(tmpProp[smp])
 	}
-	fmt.Println("tmpProp:")
-	fmt.Println()
+	eee , _ :=	json.Marshal(tmpProp)
+	fmt.Println(eee,string(eee))
 	return tmpProp
 }
 
