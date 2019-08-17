@@ -43,8 +43,8 @@ type DepartmentListM struct {
 var dept_mod_name = "Department"
 
 // FetchDepartment : Get Department Object list
-func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentMod, *PageMeta, error) {
-	var record []*DepartmentMod
+func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentListM, *PageMeta, error) {
+	var record []*DepartmentListM
 	nps := PageMeta{}
 	if DBConn != nil {
 		count, err := DBConn.C(dept_mod_name).Find(&param).Count()
