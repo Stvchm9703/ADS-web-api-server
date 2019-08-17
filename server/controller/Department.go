@@ -14,7 +14,19 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Comtroller
+/**
+url : "/c/dept"
+methods : "POST"
+request-body : {
+	"_id" : object-id,
+	"dept_id" : string , optional,
+	"dept_name" : string, optional,
+	"locations" : string, oprional,
+	"courses" : []course_obj , not-necessary,
+	"created_at" : time , not-necessary,
+	"updated_at" : time , not-necessary,
+}
+*/
 func CreateDepartment(c *gin.Context) {
 	var tem m.DepartmentMod
 	var test map[string]interface{}
@@ -22,10 +34,8 @@ func CreateDepartment(c *gin.Context) {
 		fmt.Println(test)
 		testB, err := m.TestDepartment(test)
 		if err != nil {
-			log.Fatalln(err)
 			RespondJSONWithError(c, 500, err)
 		} else if !testB {
-			log.Print("exist")
 			RespondJSONWithError(c, 500, common.ErrorMessage{
 				When: time.Now(),
 				What: "create object error, existed oject",
@@ -35,13 +45,11 @@ func CreateDepartment(c *gin.Context) {
 			if err = json.Unmarshal(newO, &tem); err == nil {
 				fmt.Println(tem)
 				if k, err := m.CreateDepartment(&tem); err != nil {
-					log.Println(err)
 					RespondJSONWithError(c, 500, err)
 				} else {
 					RespondJSON(c, 200, k, nil)
 				}
 			} else {
-				fmt.Println("err fall:", tem)
 				BindingErr(c, tem)
 			}
 		}
@@ -50,8 +58,12 @@ func CreateDepartment(c *gin.Context) {
 	}
 }
 
+/**
+url : "/u/dept/:id"
+methods : "GET"
+*/
+
 func GetDepartmentList(c *gin.Context) {
-	// k, err := IF.Fetch("")
 	var PS m.PageMeta
 	PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
 	PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
@@ -60,12 +72,6 @@ func GetDepartmentList(c *gin.Context) {
 	// search
 	o := BindQuery(c.Request.URL.Query(), m.DepartmentMod{})
 	fmt.Println("o", o)
-	// NOTE: test case query
-	// o = &bson.M{
-	// 	"level": bson.M{
-	// 		"$in": []float64{1.0, 1, 0, 2},
-	// 	},
-	// }
 	k, PS1, err2 := m.FetchDepartment(o, &PS)
 	fmt.Println(k, PS1, err2)
 	if err2 != nil {
@@ -73,12 +79,16 @@ func GetDepartmentList(c *gin.Context) {
 	} else {
 		RespondJSON(c, 200, k, PS1)
 	}
-
 }
+
+/**
+url : "/u/dept/:id"
+methods : "GET"
+*/
 
 func GetDepartment(c *gin.Context) {
 	fmt.Println(c.Params)
-	id, err := c.Params.Get("id")
+	id, err := c.Params.Get("dept_id")
 	if err == false {
 		RespondJSONWithError(c, 500, err)
 	} else {
@@ -90,6 +100,20 @@ func GetDepartment(c *gin.Context) {
 		}
 	}
 }
+
+/**
+url : "/u/dept"
+methods : "POST"
+request-body : {
+	"_id" : object-id,
+	"dept_id" : string , optional,
+	"dept_name" : string, optional,
+	"locations" : string, oprional,
+	"courses" : []course_obj , not-necessary,
+	"created_at" : time , not-necessary,
+	"updated_at" : time , not-necessary,
+}
+*/
 
 func UpdateDepartment(c *gin.Context) {
 	var ftem map[string]interface{}
@@ -130,6 +154,13 @@ func UpdateDepartment(c *gin.Context) {
 	}
 }
 
+/**
+methods : "POST"
+url 	: "/d/dept"
+request-body : {
+	"_id" : object-id
+}
+*/
 func DeleteDepartment(c *gin.Context) {
 	var ftem map[string]interface{}
 	if c.BindJSON(&ftem) == nil {

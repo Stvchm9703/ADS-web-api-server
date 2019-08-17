@@ -85,25 +85,7 @@ func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 		tmpBD := []bson.M{}
 		for k, v := range structlist {
 			fmt.Println("k", k)
-			// temp := map[string]interface{}{}
-			// tmpProp := bson.M{}
 			r := reflect.TypeOf(v)
-			// for ri := 0; ri < r.NumField(); ri++ {
-			// 	smp := strings.Split(r.Field(ri).Tag.Get("bson"), ",")[0]
-			// 	ftmp := typeConv(r.Field(ri))
-			// 	tmpProp[smp] = bson.M{
-			// 		"bsonType":    ftmp,
-			// 		"description": "Go System AutoGen : " + r.Field(ri).Name,
-			// 	}
-			// 	if ftmp == "object" || ftmp == "array" {
-
-			// 	}
-			// 	fmt.Println("tmpProp[smp]:")
-			// 	fmt.Println(tmpProp[smp])
-			// }
-			// fmt.Println("tmpProp:")
-			// fmt.Println()
-
 			tmpProp := createBMap(v)
 
 			// fmt.Println(tmpProp)
@@ -118,23 +100,19 @@ func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 					},
 				},
 			}
-			// tm, _ := json.Marshal(tmp_schema)
-			// fmt.Println(string(tm))
-			// fmt.Println()
 			tmpBD = append(tmpBD, tmp_schema)
 		}
 		fmt.Println()
-		// fmt.Println("structlist")
-		// nameJ, _ := json.Marshal(tmpBD)
+		nameJ, _ := json.Marshal(tmpBD)
 		fmt.Println("runcmd : ")
-		// fmt.Println(string(nameJ))
+		fmt.Println(string(nameJ))
 		nameList := MgoCursorRes{}
 		DBConn.Run(bson.M{
 			"listCollections": 1.0,
 			"nameOnly":        true,
 		}, &nameList)
 		fmt.Println()
-		nameJ, _ := json.Marshal(nameList)
+		nameJ, _ = json.Marshal(nameList)
 		fmt.Println("resultCursor: ")
 		fmt.Println(string(nameJ))
 
@@ -242,8 +220,8 @@ func createBMap(v interface{}) bson.M {
 		fmt.Println("tmpProp[smp]:")
 		fmt.Println(tmpProp[smp])
 	}
-	eee , _ :=	json.Marshal(tmpProp)
-	fmt.Println(eee,string(eee))
+	eee, _ := json.Marshal(tmpProp)
+	fmt.Println(eee, string(eee))
 	return tmpProp
 }
 
@@ -274,7 +252,6 @@ func typeConv(t reflect.StructField) string {
 }
 
 func remove(s []bson.M, i int) []bson.M {
-	// s[i] = s[len(s)-1]
 	return append(s[:i], s[i+1:]...)
 }
 

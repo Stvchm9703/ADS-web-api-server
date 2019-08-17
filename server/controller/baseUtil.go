@@ -286,7 +286,9 @@ func buildFmJson(t map[string]interface{}, ref *reflect.StructField) bson.M {
 								}
 							}
 						} else {
-							cond["$"+k] = v.(string)
+							cond["$"+k] = map[string]string{
+								"$regex": v.(string),
+							}
 						}
 					}
 				}

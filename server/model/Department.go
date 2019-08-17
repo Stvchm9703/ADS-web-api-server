@@ -22,6 +22,23 @@ type DepartmentMod struct {
 	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
+type DepartmentListM struct {
+	ID       *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+	DeptID   *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
+	DeptName *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
+	Location *string        `bson:"location,omitempty" json:"location,omitempty"`
+	Courses  []struct {
+		ID        *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+		CourseID  *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
+		Title     *string        `bson:"title,omitempty" json:"title,omitempty"`
+		Level     *int           `bson:"level,omitempty" json:"level,omitempty"`
+		CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
+		UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+	} `bson:"courses,omitempty" json:"courses,omitempty"`
+	CreatedAt *time.Time `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	UpdatedAt *time.Time `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+}
+
 // dept_mod_name : model name
 var dept_mod_name = "Department"
 
@@ -31,6 +48,7 @@ func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentMod, *PageMe
 	nps := PageMeta{}
 	if DBConn != nil {
 		count, err := DBConn.C(dept_mod_name).Find(&param).Count()
+
 		if err != nil {
 			return nil, nil, err
 		}
@@ -105,6 +123,9 @@ func UpdateDepartment(Old *DepartmentMod, New *DepartmentMod) (*DepartmentMod, e
 		New.UpdatedAt = &tnow
 		if New.CreatedAt != Old.CreatedAt {
 			New.CreatedAt = Old.CreatedAt
+		}
+		if New.Courses == nil || len(New.Courses) != len(Old.Courses) {
+			New.Courses = Old.Courses
 		}
 		temp, _ := bson.Marshal(New)
 		upNew := bson.M{}

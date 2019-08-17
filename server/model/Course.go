@@ -9,8 +9,6 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"webserver/server/common"
-
 	oid "github.com/coolbed/mgo-oid"
 )
 
@@ -24,39 +22,55 @@ type CourseMod struct {
 	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
-var course_mod_name = "Course"
+// var course_mod_name = "Course"
 
 // FetchCourse : GEt the Course list
-func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
-	var record []*CourseMod
+func FetchDeptCourse(dept_id string, param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
+	var record *DepartmentMod
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		count, err := DBConn.C(course_mod_name).Find(&param).Count()
-		if err != nil {
-			return nil, nil, err
-		}
-		Q := DBConn.C(course_mod_name).Find(param)
-		if ps.PageLimit > 0 {
-			Q = Q.Limit(ps.PageLimit)
-			nps.PageLimit = ps.PageLimit
-		} else {
-			Q = Q.Limit(common.QueryDefaultPageLimit)
-			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
-		}
-		if ps.PageNum > 0 {
-			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)
-			nps.PageNum = ps.PageNum
-		} else {
-			nps.PageNum = 1
-		}
-		err1 := Q.All(&record)
+		err1 := DBConn.C(dept_mod_name).Find(
+			bson.M{
+				"_id": bson.ObjectIdHex(dept_id),
+				"courses": bson.M{
+					"$elemMatch": param,
+				},
+			},
+		).One(&record)
 		if err1 != nil {
+			fmt.Println(err1)
 			return nil, nil, err1
 		}
-		nps.Count = count
-		fmt.Println(record)
-		return record, &nps, nil
+		// nps.Count = count
+		fmt.Println("record", record)
+		return record.Courses, &nps, nil
+	}
+	_, err := NotConn()
+	return nil, nil, err
+
+}
+
+// FetchCourse : GEt the Course list
+func FetchAllCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
+	var record *[]DepartmentMod
+	nps := PageMeta{}
+	fmt.Println("req. params", param)
+	if DBConn != nil {
+		err1 := DBConn.C(dept_mod_name).Find(
+			bson.M{
+				"courses": bson.M{
+					"$elemMatch": param,
+				},
+			},
+		).One(&record)
+		if err1 != nil {
+			fmt.Println(err1)
+			return nil, nil, err1
+		}
+		// nps.Count = count
+		fmt.Println("record", record)
+		return record.Courses, &nps, nil
 	}
 	_, err := NotConn()
 	return nil, nil, err
@@ -64,36 +78,45 @@ func FetchCourse(param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, erro
 }
 
 // GetCourse : get one Course object
-func GetCourse(id string) (*CourseMod, error) {
+func GetDeptCourse(dept_id string, id string) (*CourseMod, error) {
 	if DBConn != nil {
-		var result *CourseMod
-		err := DBConn.C(course_mod_name).Find(bson.M{
-			"_id": bson.ObjectIdHex(id),
+		var result *DepartmentMod
+		err := DBConn.C(dept_mod_name).Find(bson.M{
+			"_id": bson.ObjectIdHex(dept_id),
+			"courses": bson.M{
+				"$elemMatch": bson.M{
+					"_id": bson.ObjectIdHex(id),
+				},
+			},
 		}).One(&result)
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
-		return result, nil
+		return result.Courses[0], nil
 	}
 	_, err := NotConn()
 	return nil, err
 }
 
 // CreateCourse : Create a Course Object
-func CreateCourse(cp *CourseMod) (*CourseMod, error) {
+func CreateCourse(deptId string, cp *CourseMod) (*CourseMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
-		fmt.Println("hi create")
 		if cp.ID == nil {
 			temID := bson.ObjectId(string(oid.NewOID().Bytes()))
-			fmt.Println("temId:", temID.String())
 			cp.ID = &temID
 			fmt.Println(cp.ID)
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
-		err := DBConn.C(course_mod_name).Insert(&cp)
+		err := DBConn.C(dept_mod_name).Update(bson.M{
+			"_id": bson.ObjectIdHex(deptId),
+		}, bson.M{
+			"$push": bson.M{
+				"courses": &cp,
+			},
+		})
 		if err != nil {
 			fmt.Println(err.Error())
 			return nil, err
@@ -105,7 +128,7 @@ func CreateCourse(cp *CourseMod) (*CourseMod, error) {
 }
 
 // UpdateCourse : Update a Course Object
-func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
+func UpdateCourse(dept_id string, Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
 		New.UpdatedAt = &tnow
@@ -116,10 +139,19 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 		temp, _ := bson.Marshal(New)
 		upNew := bson.M{}
 		bson.Unmarshal(temp, upNew)
+		delete(upNew, "Offers")
+		fmt.Println("update upNew", upNew)
 		Returned := CourseMod{}
-		_, err := DBConn.C(course_mod_name).Find(bson.M{"_id": Old.ID}).Apply(
+		_, err := DBConn.C(dept_mod_name).Find(bson.M{
+			"_id":        bson.ObjectIdHex(dept_id),
+			"course._id": Old.ID,
+		}).Apply(
 			mgo.Change{
-				Update:    bson.M{"$set": upNew},
+				Update: bson.M{
+					"$set": bson.M{
+						"$$": upNew,
+					},
+				},
 				ReturnNew: true,
 			},
 			&Returned,
@@ -134,9 +166,19 @@ func UpdateCourse(Old *CourseMod, New *CourseMod) (*CourseMod, error) {
 }
 
 // DeleteCourse : Delete a Course
-func DeleteCourse(cpid string) (bool, error) {
+func DeleteCourse(dept_id string, cpid string) (bool, error) {
 	if DBConn != nil {
-		err := DBConn.C(course_mod_name).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
+		// err := DBConn.C(course_mod_name).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
+		err := DBConn.C(dept_mod_name).Update(bson.M{
+			"_id": bson.ObjectIdHex(dept_id),
+		}, bson.M{
+			"$pull": bson.M{
+				"courses": bson.M{
+					"_id": bson.ObjectIdHex(cpid),
+				},
+			},
+		})
+
 		if err != nil {
 			fmt.Println("Got a real error:", err.Error())
 			return false, err
@@ -149,9 +191,17 @@ func DeleteCourse(cpid string) (bool, error) {
 }
 
 // TestCourse : Test Course is not existed
-func TestCourse(param map[string]interface{}) (bool, error) {
+func TestCourse(dept_id string, param map[string]interface{}) (bool, error) {
 	if DBConn != nil {
-		count, err := DBConn.C(course_mod_name).Find(&param).Count()
+		count, err := DBConn.C(dept_mod_name).Find(
+			bson.M{
+				"dept_id": bson.ObjectIdHex(dept_id),
+				"courses": bson.M{
+					"$elemMatch": param,
+				},
+			},
+		).Count()
+
 		if err != nil {
 			return false, err
 		}

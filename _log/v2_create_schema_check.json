@@ -1,0 +1,163 @@
+[{
+    "create": "Department",
+    "validationAction": "warn",
+    "validator": {
+        "$jsonSchema": {
+            "bsonType": "object",
+            "properties": {
+                "_id": {
+                    "bsonType": "objectId",
+                    "description": "Go System AutoGen : ID"
+                },
+                "courses": {
+                    "bsonType": "array",
+                    "description": "Go System AutoGen : Courses",
+                    "properties": {
+                        "_id": {
+                            "bsonType": "objectId",
+                            "description": "Go System AutoGen : ID"
+                        },
+                        "course_id": {
+                            "bsonType": "string",
+                            "description": "Go System AutoGen : CourseID"
+                        },
+                        "created_at": {
+                            "bsonType": "date",
+                            "description": "Go System AutoGen : CreatedAt"
+                        },
+                        "level": {
+                            "bsonType": "int",
+                            "description": "Go System AutoGen : Level"
+                        },
+                        "offers": {
+                            "bsonType": "array",
+                            "description": "Go System AutoGen : Offers",
+                            "properties": {
+                                "_id": {
+                                    "bsonType": "objectId",
+                                    "description": "Go System AutoGen : ID"
+                                },
+                                "available_places": {
+                                    "bsonType": "int",
+                                    "description": "Go System AutoGen : AvailablePlaces"
+                                },
+                                "class_size": {
+                                    "bsonType": "int",
+                                    "description": "Go System AutoGen : ClassSize"
+                                },
+                                "created_at": {
+                                    "bsonType": "date",
+                                    "description": "Go System AutoGen : CreatedAt"
+                                },
+                                "updated_at": {
+                                    "bsonType": "date",
+                                    "description": "Go System AutoGen : UpdatedAt"
+                                },
+                                "year": {
+                                    "bsonType": "int",
+                                    "description": "Go System AutoGen : Year"
+                                }
+                            }
+                        },
+                        "title": {
+                            "bsonType": "string",
+                            "description": "Go System AutoGen : Title"
+                        },
+                        "updated_at": {
+                            "bsonType": "date",
+                            "description": "Go System AutoGen : UpdatedAt"
+                        }
+                    }
+                },
+                "created_at": {
+                    "bsonType": "date",
+                    "description": "Go System AutoGen : CreatedAt"
+                },
+                "dept_id": {
+                    "bsonType": "string",
+                    "description": "Go System AutoGen : DeptID"
+                },
+                "dept_name": {
+                    "bsonType": "string",
+                    "description": "Go System AutoGen : DeptName"
+                },
+                "location": {
+                    "bsonType": "string",
+                    "description": "Go System AutoGen : Location"
+                },
+                "updated_at": {
+                    "bsonType": "date",
+                    "description": "Go System AutoGen : UpdatedAt"
+                }
+            }
+        }
+    }
+}, {
+    "create": "Student",
+    "validationAction": "warn",
+    "validator": {
+        "$jsonSchema": {
+            "bsonType": "object",
+            "properties": {
+                "_id": {
+                    "bsonType": "objectId",
+                    "description": "Go System AutoGen : ID"
+                },
+                "created_at": {
+                    "bsonType": "date",
+                    "description": "Go System AutoGen : CreatedAt"
+                },
+                "dob": {
+                    "bsonType": "date",
+                    "description": "Go System AutoGen : DOB"
+                },
+                "enrolled": {
+                    "bsonType": "array",
+                    "description": "Go System AutoGen : Enrolled",
+                    "properties": {
+                        "_id": {
+                            "bsonType": "objectId",
+                            "description": "Go System AutoGen : ID"
+                        },
+                        "course_id": {
+                            "bsonType": "string",
+                            "description": "Go System AutoGen : CourseID"
+                        },
+                        "created_at": {
+                            "bsonType": "date",
+                            "description": "Go System AutoGen : CreatedAt"
+                        },
+                        "enroll_date": {
+                            "bsonType": "date",
+                            "description": "Go System AutoGen : EnrollDate"
+                        },
+                        "student_id": {
+                            "bsonType": "string",
+                            "description": "Go System AutoGen : StudentID"
+                        },
+                        "updated_at": {
+                            "bsonType": "date",
+                            "description": "Go System AutoGen : UpdatedAt"
+                        },
+                        "year": {
+                            "bsonType": "int",
+                            "description": "Go System AutoGen : Year"
+                        }
+                    }
+                },
+                "student_id": {
+                    "bsonType": "string",
+                    "description": "Go System AutoGen : StudentID"
+                },
+                "student_name": {
+                    "bsonType": "string",
+                    "description": "Go System AutoGen : StuName"
+                },
+                "updated_at": {
+                    "bsonType": "date",
+                    "description": "Go System AutoGen : UpdatedAt"
+                }
+            }
+        }
+    }
+}]

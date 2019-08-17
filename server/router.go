@@ -23,7 +23,7 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 	{
 		// department
 		v1.GET("/l/dept", c.GetDepartmentList)
-		v1.GET("/g/dept/:id", c.GetDepartment)
+		v1.GET("/g/dept/:dept_id", c.GetDepartment)
 		v1.POST("/c/dept", c.CreateDepartment)
 		v1.POST("/d/dept", c.DeleteDepartment)
 		v1.POST("/u/dept", c.UpdateDepartment)
@@ -32,28 +32,28 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 		v1.GET("/l/dept/:dept_id/course", c.GetCourseList)
 		v1.GET("/g/dept/:dept_id/course/:course_id", c.GetCourse)
 		v1.POST("/c/dept/:dept_id/course", c.CreateCourse)
-		v1.POST("/d/dept/:dept_id/course/:order_id", c.DeleteCourse)
-		v1.POST("/u/dept/:dept_id/course/:order_id", c.UpdateCourse)
+		v1.POST("/d/dept/:dept_id/course/:course_id", c.DeleteCourse)
+		v1.POST("/u/dept/:dept_id/course/:course_id", c.UpdateCourse)
 
-		//  Offer
-		v1.GET("/l/dept/:dept_id/course/:course_id/offer", c.GetOfferList)
-		v1.GET("/g/dept/:dept_id/offer/:offer_id", c.GetOffer)
-		v1.POST("/c/dept/:dept_id/course/:course_id/offer", c.CreateOffer)
-		v1.POST("/d/dept/:dept_id/offer/:offer_id", c.DeleteOffer)
-		v1.POST("/u/dept/:dept_id/offer/:offer_id", c.UpdateOffer)
+		// //  Offer
+		// v1.GET("/l/dept/:dept_id/course/:course_id/offer", c.GetOfferList)
+		// v1.GET("/g/dept/:dept_id/offer/:offer_id", c.GetOffer)
+		// v1.POST("/c/dept/:dept_id/course/:course_id/offer", c.CreateOffer)
+		// v1.POST("/d/dept/:dept_id/offer/:offer_id", c.DeleteOffer)
+		// v1.POST("/u/dept/:dept_id/offer/:offer_id", c.UpdateOffer)
 
-		// Student
-		v1.GET("/l/student", c.GetStudentList)
-		v1.GET("/g/student/:stud_id", c.GetStudent)
-		v1.POST("/c/student", c.CreateStudent)
-		v1.POST("/d/student", c.DeleteStudent)
-		v1.POST("/u/student", c.UpdateStudent)
+		// // Student
+		// v1.GET("/l/student", c.GetStudentList)
+		// v1.GET("/g/student/:stud_id", c.GetStudent)
+		// v1.POST("/c/student", c.CreateStudent)
+		// v1.POST("/d/student", c.DeleteStudent)
+		// v1.POST("/u/student", c.UpdateStudent)
 
-		// Enroll
-		v1.GET("/l/student/:stud_id/enrolled", c.GetEnrollList)
-		v1.POST("/c/student/:stud_id/enrolled", c.CreateEnroll)
-		v1.POST("/d/student/:stud_id/enrolled", c.DeleteEnroll)
-		v1.POST("/u/student/:stud_id/enrolled", c.UpdateEnroll)
+		// // Enroll
+		// v1.GET("/l/student/:stud_id/enrolled", c.GetEnrollList)
+		// v1.POST("/c/student/:stud_id/enrolled", c.CreateEnroll)
+		// v1.POST("/d/student/:stud_id/enrolled", c.DeleteEnroll)
+		// v1.POST("/u/student/:stud_id/enrolled", c.UpdateEnroll)
 
 		// Enroll Course Detail
 		v1.GET("/l/student/:stud_id/enrolled/:course_id", c.GetEnrollList)
