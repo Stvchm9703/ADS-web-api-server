@@ -14,75 +14,83 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Comtroller
 func CreateOffer(c *gin.Context) {
-	var tem m.OfferMod
-	var test map[string]interface{}
-	if c.BindJSON(&test) == nil {
-		fmt.Println(test)
-		testB, err := m.TestOffer(test)
-		if err != nil {
-			log.Fatalln(err)
-			RespondJSONWithError(c, 500, err)
-		} else if !testB {
-			log.Print("exist")
-			RespondJSONWithError(c, 500, common.ErrorMessage{
-				When: time.Now(),
-				What: "create object error, existed oject",
-			})
-		} else {
-			newO, err := json.Marshal(test)
-			if err = json.Unmarshal(newO, &tem); err == nil {
-				fmt.Println(tem)
-				if k, err := m.CreateOffer(&tem); err != nil {
-					log.Println(err)
-					RespondJSONWithError(c, 500, err)
-				} else {
-					RespondJSON(c, 200, k, nil)
-				}
-			} else {
-				fmt.Println("err fall:", tem)
-				BindingErr(c, tem)
-			}
-		}
+	id, e := c.Params.Get("course_id")
+	if !e {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of deot_id",
+		})
 	} else {
-		BindingErr(c, test)
+		var tem m.OfferMod
+		var test map[string]interface{}
+		if c.BindJSON(&test) == nil {
+			testB, err := m.TestOffer(id, test)
+			if err != nil {
+				RespondJSONWithError(c, 500, err)
+			} else if !testB {
+				RespondJSONWithError(c, 500, common.ErrorMessage{
+					When: time.Now(),
+					What: "create object error, existed oject",
+				})
+			} else {
+				newO, err := json.Marshal(test)
+				if err = json.Unmarshal(newO, &tem); err == nil {
+					if k, err := m.CreateOffer(id, &tem); err != nil {
+						RespondJSONWithError(c, 500, err)
+					} else {
+						RespondJSON(c, 200, k, nil)
+					}
+				} else {
+					BindingErr(c, tem)
+				}
+			}
+		} else {
+			BindingErr(c, test)
+		}
 	}
 }
 
 func GetOfferList(c *gin.Context) {
-	// k, err := IF.Fetch("")
-	var PS m.PageMeta
-	PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
-	PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
-	fmt.Println("query map", c.Request.URL.Query())
-	fmt.Println("PS", PS)
-	// search
-	o := BindQuery(c.Request.URL.Query(), m.OfferMod{})
-	fmt.Println("o", o)
-	// NOTE: test case query
-	// o = &bson.M{
-	// 	"level": bson.M{
-	// 		"$in": []float64{1.0, 1, 0, 2},
-	// 	},
-	// }
-	k, PS1, err2 := m.FetchOffer(o, &PS)
-	fmt.Println(k, PS1, err2)
-	if err2 != nil {
-		RespondJSONWithError(c, 500, err2)
+	id, e := c.Params.Get("course_id")
+	if !e {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of course_id",
+		})
 	} else {
-		RespondJSON(c, 200, k, PS1)
+		var PS m.PageMeta
+		PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
+		PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
+		// search
+		o := BindQuery(c.Request.URL.Query(), m.CourseMod{})
+		if len(id) == 24 {
+			k, PS1, err2 := m.FetchCourseOffer(id, o, &PS)
+			if err2 != nil {
+				RespondJSONWithError(c, 500, err2)
+			} else {
+				RespondJSON(c, 200, k, PS1)
+			}
+		} else {
+			fmt.Println("FetchAllCourse")
+			k, PS1, err2 := m.FetchAllOffer(o, &PS)
+			if err2 != nil {
+				RespondJSONWithError(c, 500, err2)
+			} else {
+				RespondJSON(c, 200, k, PS1)
+			}
+		}
 	}
-
 }
 
 func GetOffer(c *gin.Context) {
 	fmt.Println(c.Params)
-	id, err := c.Params.Get("id")
-	if err == false {
-		RespondJSONWithError(c, 500, err)
+	id, err := c.Params.Get("course_id")
+	offer_id, e3 := c.Params.Get("offer_id")
+	if !err || !e3 {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of dept_id or id",
+		})
 	} else {
-		k, err2 := m.GetOffer(id)
+		k, err2 := m.GetOffer(id, offer_id)
 		if (err2) != nil {
 			RespondJSONWithError(c, 500, err)
 		} else {
@@ -92,58 +100,65 @@ func GetOffer(c *gin.Context) {
 }
 
 func UpdateOffer(c *gin.Context) {
+	id, err3 := c.Params.Get("dept_id")
+	course_id, er2 := c.Params.Get("course_id")
 	var ftem map[string]interface{}
-	var tem m.OfferMod
-	if c.BindJSON(&ftem) == nil {
-		k1, errr := m.GetOffer(ftem["_id"].(string))
-		if errr != nil {
-			log.Fatalln(errr)
-			RespondJSONWithError(c, 500, errr)
-		} else {
-			if k1 != nil {
-				newO, err := json.Marshal(ftem)
-				// fmt.Println("newO:", string(newO))
-				if err = json.Unmarshal(newO, &tem); err == nil {
-					// fmt.Println(tem)
-					k, err := m.UpdateOffer(k1, &tem)
-					if err != nil {
-						log.Println(err)
-						RespondJSONWithError(c, 500, err)
+	var tem m.CourseMod
+	if !err3 || !er2 {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of dept_id or course_id",
+		})
+	} else {
+		if c.BindJSON(&ftem) == nil {
+			k1, errr := m.GetDeptCourse(id, course_id)
+			if errr != nil {
+				RespondJSONWithError(c, 500, errr)
+			} else {
+				if k1 != nil {
+					newO, err := json.Marshal(ftem)
+					if err = json.Unmarshal(newO, &tem); err == nil {
+						k, err := m.UpdateCourse(id, k1, &tem)
+						if err != nil {
+							log.Println(err)
+							RespondJSONWithError(c, 500, err)
+						} else {
+							RespondJSON(c, 200, k, nil)
+						}
 					} else {
-						RespondJSON(c, 200, k, nil)
+						BindingErr(c, tem)
 					}
 				} else {
-					// fmt.Println("newO", string(newO))
-					// fmt.Println("err fall:", tem)
-					BindingErr(c, tem)
+					RespondJSONWithError(c, 500, common.ErrorMessage{
+						When: time.Now(),
+						What: "no Object is find for update",
+					})
 				}
-
-			} else {
-				RespondJSONWithError(c, 500, common.ErrorMessage{
-					When: time.Now(),
-					What: "no Object is find for update",
-				})
 			}
+		} else {
+			BindingErr(c, &tem)
 		}
-	} else {
-		BindingErr(c, &tem)
 	}
 }
 
 func DeleteOffer(c *gin.Context) {
-	var ftem map[string]interface{}
-	if c.BindJSON(&ftem) == nil {
-		fmt.Println(ftem)
-		notexist, err := m.TestOffer(map[string]interface{}{
-			"_id": bson.ObjectIdHex(ftem["_id"].(string)),
+	// var ftem map[string]interface{}
+	id, err3 := c.Params.Get("dept_id")
+	cid, er2 := c.Params.Get("course_id")
+	if !err3 || !er2 {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of dept_id or course_id",
+		})
+	} else {
+
+		notexist, err := m.TestCourse(id, map[string]interface{}{
+			"_id": bson.ObjectIdHex(cid),
 		})
 		if err != nil {
 			RespondJSONWithError(c, 500, err)
 		} else {
 			if !notexist {
-				_, err := m.DeleteOffer(ftem["_id"].(string))
+				_, err := m.DeleteCourse(id, cid)
 				if err != nil {
-					log.Println(err)
 					RespondJSONWithError(c, 500, err)
 				} else {
 					RespondJSON(c, 200, true, nil)
@@ -155,8 +170,6 @@ func DeleteOffer(c *gin.Context) {
 				})
 			}
 		}
-	} else {
-		fmt.Println(ftem)
-		BindingErr(c, &m.OfferMod{})
+
 	}
 }

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	conf "webserver/server/common"
@@ -12,6 +13,11 @@ import (
 )
 
 var router errgroup.Group
+
+func DummyMiddleware(c *gin.Context) {
+	fmt.Println(c)
+	c.Next()
+}
 
 // RouterSetting : api routing setting
 func RouterSetting(config *conf.ConfigTemp) http.Handler {
@@ -29,18 +35,18 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 		v1.POST("/u/dept", c.UpdateDepartment)
 
 		//  Course
-		v1.GET("/l/dept/:dept_id/course", c.GetCourseList)
-		v1.GET("/g/dept/:dept_id/course/:course_id", c.GetCourse)
+		v1.GET("/l/dept/:dept_id/course", c.GetDeptCourseList)
+		v1.GET("/g/dept/:dept_id/course/:course_id", c.GetDeptCourse)
 		v1.POST("/c/dept/:dept_id/course", c.CreateCourse)
 		v1.POST("/d/dept/:dept_id/course/:course_id", c.DeleteCourse)
 		v1.POST("/u/dept/:dept_id/course/:course_id", c.UpdateCourse)
 
-		// //  Offer
-		// v1.GET("/l/dept/:dept_id/course/:course_id/offer", c.GetOfferList)
-		// v1.GET("/g/dept/:dept_id/offer/:offer_id", c.GetOffer)
-		// v1.POST("/c/dept/:dept_id/course/:course_id/offer", c.CreateOffer)
-		// v1.POST("/d/dept/:dept_id/offer/:offer_id", c.DeleteOffer)
-		// v1.POST("/u/dept/:dept_id/offer/:offer_id", c.UpdateOffer)
+		//  Offer
+		v1.GET("/l/course/:course_id/offer", c.GetOfferList)
+		v1.GET("/g/course/:course_id/offer/:offer_id", c.GetOffer)
+		v1.POST("/c/course/:course_id/offer", c.CreateOffer)
+		v1.POST("/d/course/:course_id/offer/:offer_id", c.DeleteOffer)
+		v1.POST("/u/course/:course_id/offer/:offer_id", c.UpdateOffer)
 
 		// // Student
 		// v1.GET("/l/student", c.GetStudentList)

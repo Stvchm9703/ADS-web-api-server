@@ -72,18 +72,21 @@ func GetDeptCourseList(c *gin.Context) {
 		PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
 		// search
 		o := BindQuery(c.Request.URL.Query(), m.CourseMod{})
-		var k []*m.CourseMod
-		var PS1 *m.PageMeta
-		var err2 error
 		if len(id) == 24 {
-			k, PS1, err2 = m.FetchDeptCourse(id, o, &PS)
+			k, PS1, err2 := m.FetchDeptCourse(id, o, &PS)
+			if err2 != nil {
+				RespondJSONWithError(c, 500, err2)
+			} else {
+				RespondJSON(c, 200, k, PS1)
+			}
 		} else {
-			k, PS1, err2 = m.FetchAllCourse(o, &PS)
-		}
-		if err2 != nil {
-			RespondJSONWithError(c, 500, err2)
-		} else {
-			RespondJSON(c, 200, k, PS1)
+			fmt.Println("FetchAllCourse")
+			k, PS1, err2 := m.FetchAllCourse(o, &PS)
+			if err2 != nil {
+				RespondJSONWithError(c, 500, err2)
+			} else {
+				RespondJSON(c, 200, k, PS1)
+			}
 		}
 	}
 }
@@ -117,7 +120,7 @@ func UpdateCourse(c *gin.Context) {
 		})
 	} else {
 		if c.BindJSON(&ftem) == nil {
-			k1, errr := m.GetCourse(id, course_id)
+			k1, errr := m.GetDeptCourse(id, course_id)
 			if errr != nil {
 				RespondJSONWithError(c, 500, errr)
 			} else {

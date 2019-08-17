@@ -120,8 +120,6 @@ func BindQuery(q map[string][]string, lookup interface{}) *bson.M {
 func buildBsonM(q string, ref *reflect.StructField) bson.M {
 	// cond := []bson.M{}
 	cond := bson.M{}
-	fmt.Println(q)
-	fmt.Println(ref.Name)
 	var t map[string]interface{}
 	if err := json.Unmarshal([]byte(q), &t); err != nil {
 		fmt.Println(err)
@@ -174,6 +172,7 @@ func buildFmJson(t map[string]interface{}, ref *reflect.StructField) bson.M {
 			case "in", "nin":
 				{ // in or not-in case
 					switch ref.Type.String() {
+					
 					case "struct", "interface":
 						fmt.Println("igorn case")
 					case "int", "int32", "int64", "float32", "float64", "uint64", "uint32", "uint",
