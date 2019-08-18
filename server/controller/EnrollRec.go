@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 	"webserver/server/common"
@@ -16,67 +15,85 @@ import (
 
 // Comtroller
 func CreateEnroll(c *gin.Context) {
-	var tem m.EnrollMod
-	var test map[string]interface{}
-	if c.BindJSON(&test) == nil {
-		fmt.Println(test)
-		testB, err := m.TestEnroll(test)
-		if err != nil {
-			log.Fatalln(err)
-			RespondJSONWithError(c, 500, err)
-		} else if !testB {
-			log.Print("exist")
-			RespondJSONWithError(c, 500, common.ErrorMessage{
-				When: time.Now(),
-				What: "create object error, existed oject",
-			})
-		} else {
-			newO, err := json.Marshal(test)
-			if err = json.Unmarshal(newO, &tem); err == nil {
-				fmt.Println(tem)
-				if k, err := m.CreateEnroll(&tem); err != nil {
-					log.Println(err)
-					RespondJSONWithError(c, 500, err)
-				} else {
-					RespondJSON(c, 200, k, nil)
-				}
-			} else {
-				fmt.Println("err fall:", tem)
-				BindingErr(c, tem)
-			}
-		}
+	id, e := c.Params.Get("stud_id")
+	if !e {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of deot_id",
+		})
 	} else {
-		BindingErr(c, test)
+		var tem m.EnrollMod
+		var test map[string]interface{}
+		if c.BindJSON(&test) == nil {
+			testB, err := m.TestEnroll(id, test)
+			if err != nil {
+				RespondJSONWithError(c, 500, err)
+			} else if !testB {
+				RespondJSONWithError(c, 500, common.ErrorMessage{
+					When: time.Now(),
+					What: "create object error, existed oject",
+				})
+			} else {
+				newO, err := json.Marshal(test)
+				if err = json.Unmarshal(newO, &tem); err == nil {
+					if k, err := m.CreateEnroll(id, &tem); err != nil {
+						RespondJSONWithError(c, 500, err)
+					} else {
+						RespondJSON(c, 200, k, nil)
+					}
+				} else {
+					BindingErr(c, tem)
+				}
+			}
+		} else {
+			BindingErr(c, test)
+		}
 	}
 }
 
 func GetEnrollList(c *gin.Context) {
-	// k, err := IF.Fetch("")
-	var PS m.PageMeta
-	PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
-	PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
-	fmt.Println("query map", c.Request.URL.Query())
-	fmt.Println("PS", PS)
-	// search
-	o := BindQuery(c.Request.URL.Query(), m.EnrollMod{})
-	fmt.Println("o", o)
-	k, PS1, err2 := m.FetchEnroll(o, &PS)
-	fmt.Println(k, PS1, err2)
-	if err2 != nil {
-		RespondJSONWithError(c, 500, err2)
+	id, e := c.Params.Get("stud_id")
+	if !e {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of course_id",
+		})
 	} else {
-		RespondJSON(c, 200, k, PS1)
+		var PS m.PageMeta
+		PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
+		PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
+		fmt.Println("query map", c.Request.URL.Query())
+		fmt.Println("PS", PS)
+		// search
+		o := BindQuery(c.Request.URL.Query(), m.EnrollMod{})
+		if len(id) == 24 {
+			k, PS1, err2 := m.FetchStudEnroll(id, o, &PS)
+			if err2 != nil {
+				RespondJSONWithError(c, 500, err2)
+			} else {
+				RespondJSON(c, 200, k, PS1)
+			}
+		} else {
+			fmt.Println("FetchAllEnrolled")
+			k, PS1, err2 := m.FetchAllEnroll(o, &PS)
+			if err2 != nil {
+				RespondJSONWithError(c, 500, err2)
+			} else {
+				RespondJSON(c, 200, k, PS1)
+			}
+		}
 	}
 
 }
 
 func GetEnroll(c *gin.Context) {
 	fmt.Println(c.Params)
-	id, err := c.Params.Get("id")
-	if err == false {
-		RespondJSONWithError(c, 500, err)
+	id, err := c.Params.Get("stud_id")
+	e_id, e3 := c.Params.Get("e_id")
+	if !err || !e3 {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of dept_id or id",
+		})
 	} else {
-		k, err2 := m.GetEnroll(id)
+		k, err2 := m.GetEnroll(id, e_id)
 		if (err2) != nil {
 			RespondJSONWithError(c, 500, err)
 		} else {
@@ -86,58 +103,59 @@ func GetEnroll(c *gin.Context) {
 }
 
 func UpdateEnroll(c *gin.Context) {
+	id, err3 := c.Params.Get("stud_id")
+	e_id, er2 := c.Params.Get("e_id")
 	var ftem map[string]interface{}
 	var tem m.EnrollMod
-	if c.BindJSON(&ftem) == nil {
-		k1, errr := m.GetEnroll(ftem["_id"].(string))
-		if errr != nil {
-			log.Fatalln(errr)
-			RespondJSONWithError(c, 500, errr)
-		} else {
-			if k1 != nil {
-				newO, err := json.Marshal(ftem)
-				// fmt.Println("newO:", string(newO))
-				if err = json.Unmarshal(newO, &tem); err == nil {
-					// fmt.Println(tem)
-					k, err := m.UpdateEnroll(k1, &tem)
-					if err != nil {
-						log.Println(err)
-						RespondJSONWithError(c, 500, err)
+	if !err3 || !er2 {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of dept_id or course_id",
+		})
+	} else {
+		if c.BindJSON(&ftem) == nil {
+			k1, errr := m.GetEnroll(id, e_id)
+			if errr != nil {
+				RespondJSONWithError(c, 500, errr)
+			} else {
+				if k1 != nil {
+					newO, err := json.Marshal(ftem)
+					if err = json.Unmarshal(newO, &tem); err == nil {
+						k, err := m.UpdateEnroll(id, k1, &tem)
+						if err != nil {
+							RespondJSONWithError(c, 500, err)
+						} else {
+							RespondJSON(c, 200, k, nil)
+						}
 					} else {
-						RespondJSON(c, 200, k, nil)
+						BindingErr(c, tem)
 					}
 				} else {
-					// fmt.Println("newO", string(newO))
-					// fmt.Println("err fall:", tem)
-					BindingErr(c, tem)
+					RespondJSONWithError(c, 500, common.ErrorMessage{
+						When: time.Now(),
+						What: "no Object is find for update",
+					})
 				}
-
-			} else {
-				RespondJSONWithError(c, 500, common.ErrorMessage{
-					When: time.Now(),
-					What: "no Object is find for update",
-				})
 			}
+		} else {
+			BindingErr(c, &tem)
 		}
-	} else {
-		BindingErr(c, &tem)
 	}
 }
 
 func DeleteEnroll(c *gin.Context) {
+	id, err3 := c.Params.Get("stud_id")
+	cid, er2 := c.Params.Get("e_id")
 	var ftem map[string]interface{}
 	if c.BindJSON(&ftem) == nil {
-		fmt.Println(ftem)
-		notexist, err := m.TestEnroll(map[string]interface{}{
-			"_id": bson.ObjectIdHex(ftem["_id"].(string)),
+		notexist, err := m.TestEnroll(id, map[string]interface{}{
+			"_id": bson.ObjectIdHex(cid),
 		})
 		if err != nil {
 			RespondJSONWithError(c, 500, err)
 		} else {
 			if !notexist {
-				_, err := m.DeleteEnroll(ftem["_id"].(string))
+				_, err := m.DeleteEnroll(id, cid)
 				if err != nil {
-					log.Println(err)
 					RespondJSONWithError(c, 500, err)
 				} else {
 					RespondJSON(c, 200, true, nil)
@@ -150,7 +168,6 @@ func DeleteEnroll(c *gin.Context) {
 			}
 		}
 	} else {
-		fmt.Println(ftem)
 		BindingErr(c, &m.EnrollMod{})
 	}
 }

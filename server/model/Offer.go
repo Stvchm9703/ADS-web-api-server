@@ -17,23 +17,44 @@ type OfferMod struct {
 	CreatedAt       *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt       *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
+type CourseOfferMod struct {
+	ID       *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+	CourseID *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
+	Title    *string        `bson:"title,omitempty" json:"title,omitempty"`
+	Level    *int           `bson:"level,omitempty" json:"level,omitempty"`
+	Offers   *struct {
+		ID              *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+		Year            *int           `bson:"year,omitempty" json:"year,omitempty"`
+		ClassSize       *int           `bson:"class_size,omitempty" json:"class_size,omitempty"`
+		AvailablePlaces *int           `bson:"available_places,omitempty" json:"available_places,omitempty"`
+		CreatedAt       *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
+		UpdatedAt       *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+	} `bson:"offers,omitempty" json:"offers,omitempty"`
+	CreatedAt *time.Time `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	UpdatedAt *time.Time `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+}
 
 var offer_mod_name = "Offer"
 
-// FetchCourse : GEt the Course list
-func FetchCourseOffer(courseId string, param interface{}, ps *PageMeta) ([]*CourseListM, *PageMeta, error) {
-	var record []*CourseListM
+// FetchCourse : GEt the Course list by Course id
+func FetchCourseOffer(courseId string, param interface{}, ps *PageMeta) ([]*CourseMod, *PageMeta, error) {
+	var record []*CourseMod
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		err1 := DBConn.C(dept_mod_name).Find(
-			bson.M{
-				"courses._id": bson.ObjectIdHex(courseId),
-				"courses.offers": bson.M{
-					"$elemMatch": param,
-				},
+		err1 := DBConn.C(dept_mod_name).Pipe(
+			[]bson.M{
+				bson.M{"$match": bson.M{
+					"courses._id": bson.ObjectIdHex(courseId),
+					"courses.offers": bson.M{
+						"$elemMatch": param,
+					},
+				}},
+				bson.M{"$unwind": "$courses"},
+				// bson.M{"$unwind": "$courses.offers"},
+				bson.M{"$replaceRoot": bson.M{"newRoot": "$courses"}},
 			},
-		).One(&record)
+		).All(&record)
 		if err1 != nil {
 			fmt.Println(err1)
 			return nil, nil, err1
@@ -47,9 +68,9 @@ func FetchCourseOffer(courseId string, param interface{}, ps *PageMeta) ([]*Cour
 
 }
 
-// FetchOffer : Get Offer list
-func FetchAllOffer(param interface{}, ps *PageMeta) ([]*OfferMod, *PageMeta, error) {
-	var record []*OfferMod
+// FetchAllOffer : Globle search in all Offer
+func FetchAllOffer(param interface{}, ps *PageMeta) ([]*CourseOfferMod, *PageMeta, error) {
+	var record []*CourseOfferMod
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
@@ -61,6 +82,8 @@ func FetchAllOffer(param interface{}, ps *PageMeta) ([]*OfferMod, *PageMeta, err
 					},
 				}},
 				bson.M{"$unwind": "$courses"},
+				bson.M{"$unwind": "$courses.offers"},
+				bson.M{"$replaceRoot": bson.M{"newRoot": "$courses"}},
 			},
 		).All(&record)
 		if err1 != nil {
@@ -70,7 +93,6 @@ func FetchAllOffer(param interface{}, ps *PageMeta) ([]*OfferMod, *PageMeta, err
 	}
 	_, err := NotConn()
 	return nil, nil, err
-
 }
 
 // GetOffer : get one Offer object
@@ -107,7 +129,7 @@ func CreateOffer(courseId string, cp *OfferMod) (*OfferMod, error) {
 			"courses._id": bson.ObjectIdHex(courseId),
 		}, bson.M{
 			"$push": bson.M{
-				"courses.offers": &cp,
+				"courses.$.offers": &cp,
 			},
 		})
 		if err != nil {
@@ -160,7 +182,7 @@ func DeleteOffer(courseId string, cpid string) (bool, error) {
 			"courses._id": bson.ObjectIdHex(courseId),
 		}, bson.M{
 			"$pull": bson.M{
-				"courses.offers._id": bson.ObjectIdHex(cpid),
+				"courses.$.offers._id": bson.ObjectIdHex(cpid),
 			},
 		})
 		if err != nil {

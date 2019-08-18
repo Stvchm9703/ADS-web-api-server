@@ -141,7 +141,6 @@ func UpdateOffer(c *gin.Context) {
 }
 
 func DeleteOffer(c *gin.Context) {
-	// var ftem map[string]interface{}
 	id, err3 := c.Params.Get("dept_id")
 	cid, er2 := c.Params.Get("course_id")
 	if !err3 || !er2 {

@@ -30,11 +30,8 @@ export default {
   ],
   axios: {
   },
-  build: {
-    extend (config, ctx) {
-    }
-  },
   generate: { 
-    dir : 'dist'
+    dir : 'dist',
+    
   }
 }

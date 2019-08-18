@@ -26,7 +26,7 @@ type CourseListM struct {
 	DeptID   *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
 	DeptName *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
 	Location *string        `bson:"location,omitempty" json:"location,omitempty"`
-	Courses  struct {
+	Courses  *struct {
 		ID       *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 		CourseID *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
 		Title    *string        `bson:"title,omitempty" json:"title,omitempty"`
@@ -90,8 +90,7 @@ func FetchAllCourse(param interface{}, ps *PageMeta) ([]CourseListM, *PageMeta, 
 			fmt.Println(err1)
 			return nil, nil, err1
 		}
-		// nps.Count = count
-		fmt.Println("record", record)
+
 		return record, &nps, nil
 	}
 	_, err := NotConn()
@@ -128,6 +127,7 @@ func CreateCourse(deptId string, cp *CourseMod) (*CourseMod, error) {
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
+		cp.Offers = []*OfferMod{}
 		err := DBConn.C(dept_mod_name).Update(bson.M{
 			"_id": bson.ObjectIdHex(deptId),
 		}, bson.M{
@@ -213,7 +213,7 @@ func TestCourse(dept_id string, param map[string]interface{}) (bool, error) {
 	if DBConn != nil {
 		count, err := DBConn.C(dept_mod_name).Find(
 			bson.M{
-				"dept_id": bson.ObjectIdHex(dept_id),
+				"_id": bson.ObjectIdHex(dept_id),
 				"courses": bson.M{
 					"$elemMatch": param,
 				},

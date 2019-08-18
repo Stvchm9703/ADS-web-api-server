@@ -126,9 +126,7 @@ func UpdateDepartment(c *gin.Context) {
 		} else {
 			if k1 != nil {
 				newO, err := json.Marshal(ftem)
-				// fmt.Println("newO:", string(newO))
 				if err = json.Unmarshal(newO, &tem); err == nil {
-					// fmt.Println(tem)
 					k, err := m.UpdateDepartment(k1, &tem)
 					if err != nil {
 						log.Println(err)
@@ -137,8 +135,6 @@ func UpdateDepartment(c *gin.Context) {
 						RespondJSON(c, 200, k, nil)
 					}
 				} else {
-					// fmt.Println("newO", string(newO))
-					// fmt.Println("err fall:", tem)
 					BindingErr(c, tem)
 				}
 

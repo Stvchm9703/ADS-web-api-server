@@ -22,10 +22,8 @@ func CreateStudent(c *gin.Context) {
 		fmt.Println(test)
 		testB, err := m.TestStudent(test)
 		if err != nil {
-			log.Fatalln(err)
 			RespondJSONWithError(c, 500, err)
 		} else if !testB {
-			log.Print("exist")
 			RespondJSONWithError(c, 500, common.ErrorMessage{
 				When: time.Now(),
 				What: "create object error, existed oject",
@@ -35,13 +33,11 @@ func CreateStudent(c *gin.Context) {
 			if err = json.Unmarshal(newO, &tem); err == nil {
 				fmt.Println(tem)
 				if k, err := m.CreateStudent(&tem); err != nil {
-					log.Println(err)
 					RespondJSONWithError(c, 500, err)
 				} else {
 					RespondJSON(c, 200, k, nil)
 				}
 			} else {
-				fmt.Println("err fall:", tem)
 				BindingErr(c, tem)
 			}
 		}
@@ -51,21 +47,13 @@ func CreateStudent(c *gin.Context) {
 }
 
 func GetStudentList(c *gin.Context) {
-	// k, err := IF.Fetch("")
 	var PS m.PageMeta
 	PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
 	PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
 	fmt.Println("query map", c.Request.URL.Query())
 	fmt.Println("PS", PS)
-	// search
 	o := BindQuery(c.Request.URL.Query(), m.StudentMod{})
 	fmt.Println("o", o)
-	// NOTE: test case query
-	// o = &bson.M{
-	// 	"level": bson.M{
-	// 		"$in": []float64{1.0, 1, 0, 2},
-	// 	},
-	// }
 	k, PS1, err2 := m.FetchStudent(o, &PS)
 	fmt.Println(k, PS1, err2)
 	if err2 != nil {
@@ -78,7 +66,7 @@ func GetStudentList(c *gin.Context) {
 
 func GetStudent(c *gin.Context) {
 	fmt.Println(c.Params)
-	id, err := c.Params.Get("id")
+	id, err := c.Params.Get("stu_id")
 	if err == false {
 		RespondJSONWithError(c, 500, err)
 	} else {
@@ -102,9 +90,7 @@ func UpdateStudent(c *gin.Context) {
 		} else {
 			if k1 != nil {
 				newO, err := json.Marshal(ftem)
-				// fmt.Println("newO:", string(newO))
 				if err = json.Unmarshal(newO, &tem); err == nil {
-					// fmt.Println(tem)
 					k, err := m.UpdateStudent(k1, &tem)
 					if err != nil {
 						log.Println(err)
@@ -113,8 +99,6 @@ func UpdateStudent(c *gin.Context) {
 						RespondJSON(c, 200, k, nil)
 					}
 				} else {
-					// fmt.Println("newO", string(newO))
-					// fmt.Println("err fall:", tem)
 					BindingErr(c, tem)
 				}
 

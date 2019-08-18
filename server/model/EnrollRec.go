@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"time"
-	"webserver/server/common"
 
 	oid "github.com/coolbed/mgo-oid"
 	"gopkg.in/mgo.v2"
@@ -12,7 +11,6 @@ import (
 
 type EnrollMod struct {
 	ID         *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
-	StudentID  *string        `bson:"student_id,omitempty" json:"student_id,omitempty"`
 	Year       *int           `bson:"year,omitempty" json:"year,omitempty"`
 	CourseID   *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
 	EnrollDate *time.Time     `bson:"enroll_date,omitempty" json:"enroll_date,omitempty"`
@@ -20,76 +18,82 @@ type EnrollMod struct {
 	UpdatedAt  *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
-var enroll_mod_name = "Enroll"
+type StudentEnrollMod struct {
+	ID        *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+	StudentID *string        `bson:"student_id,omitempty" json:"student_id,omitempty"`
+	StuName   *string        `bson:"student_name,omitempty" json:"student_name,omitempty"`
+	DOB       *time.Time     `bson:"dob,omitempty" json:"dob,omitempty"`
+	Enrolled  *EnrollMod     `bson:"enrolled,omitempty" json:"enrolled,omitempty"`
+	CreatedAt *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+}
+
+var student_mod_name = "Enroll"
 
 // FetchEnroll : Get Enroll list
-func FetchEnroll(param interface{}, ps *PageMeta) ([]*EnrollMod, *PageMeta, error) {
-	var record []*EnrollMod
+func FetchStudEnroll(sid string, param interface{}, ps *PageMeta) ([]*EnrollMod, *PageMeta, error) {
+	var record *StudentMod
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		count, err := DBConn.C(enroll_mod_name).Find(&param).Count()
+		err := DBConn.C(student_mod_name).Find(bson.M{
+			"_id": bson.ObjectIdHex(sid),
+			"enrolled": bson.M{
+				"$elemMatch": param,
+			},
+		}).One(&record)
 		if err != nil {
-			fmt.Println("error")
-			fmt.Println(err)
-			fmt.Println("param")
-			fmt.Println(param)
 			return nil, nil, err
 		}
-		// fmt.Println("count:", count)
-		Q := DBConn.C(enroll_mod_name).Find(param)
-		if ps.PageLimit > 0 {
-			Q = Q.Limit(ps.PageLimit)
-			nps.PageLimit = ps.PageLimit
-		} else {
-			Q = Q.Limit(common.QueryDefaultPageLimit)
-			nps.PageLimit = common.QueryDefaultPageLimit // default Page Limit
-		}
-		fmt.Println("req. pageNum", ps.PageNum)
-		// defAULT : 1
-		if ps.PageNum > 0 {
-			Q = Q.Skip((ps.PageNum - 1) * ps.PageLimit)
-			nps.PageNum = ps.PageNum
-		} else {
-			nps.PageNum = 1
-		}
-		fmt.Println("Q:", Q)
-		err1 := Q.All(&record)
+		fmt.Println(record)
+		return record.Enrolled, &nps, nil
+	}
+	_, err := NotConn()
+	return nil, nil, err
+}
+func FetchAllEnroll(param interface{}, ps *PageMeta) ([]*StudentEnrollMod, *PageMeta, error) {
+	var record []*StudentEnrollMod
+	nps := PageMeta{}
+	fmt.Println("req. params", param)
+	if DBConn != nil {
+		err1 := DBConn.C(student_mod_name).Pipe(
+			[]bson.M{
+				bson.M{"$match": bson.M{
+					"enrolled": bson.M{
+						"$elemMatch": param,
+					},
+				}},
+				bson.M{"$unwind": "$enrolled"},
+			},
+		).All(&record)
 		if err1 != nil {
-			fmt.Println("error")
-			fmt.Println(err1)
-			fmt.Println("param")
-			fmt.Println(param)
 			return nil, nil, err1
 		}
-		nps.Count = count
-		fmt.Println(record)
 		return record, &nps, nil
 	}
 	_, err := NotConn()
 	return nil, nil, err
-
 }
 
 // GetEnroll : get one Enroll object
-func GetEnroll(id string) (*EnrollMod, error) {
+func GetEnroll(sid string, id string) (*EnrollMod, error) {
 	if DBConn != nil {
-		var result *EnrollMod
-		err := DBConn.C(enroll_mod_name).Find(bson.M{
-			"_id": bson.ObjectIdHex(id),
+		var result *StudentEnrollMod
+		err := DBConn.C(student_mod_name).Find(bson.M{
+			"_id":          bson.ObjectIdHex(sid),
+			"enrolled._id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
-		return result, nil
+		return result.Enrolled, nil
 	}
 	_, err := NotConn()
 	return nil, err
 }
 
 // CreateEnroll : Create a Enroll Object
-func CreateEnroll(cp *EnrollMod) (*EnrollMod, error) {
+func CreateEnroll(sid string, cp *EnrollMod) (*EnrollMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
 		fmt.Println("hi create")
@@ -101,9 +105,12 @@ func CreateEnroll(cp *EnrollMod) (*EnrollMod, error) {
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
-		err := DBConn.C(enroll_mod_name).Insert(&cp)
+		err := DBConn.C(student_mod_name).Update(bson.M{
+			"_id": bson.ObjectIdHex(sid),
+		}, bson.M{
+			"$push": bson.M{"enrolled": &cp},
+		})
 		if err != nil {
-			fmt.Println(err.Error())
 			return nil, err
 		}
 		return cp, nil
@@ -113,12 +120,11 @@ func CreateEnroll(cp *EnrollMod) (*EnrollMod, error) {
 }
 
 // UpdateEnroll : Update a Enroll Object
-func UpdateEnroll(Old *EnrollMod, New *EnrollMod) (*EnrollMod, error) {
+func UpdateEnroll(stud_id string, Old *EnrollMod, New *EnrollMod) (*EnrollMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
 		New.UpdatedAt = &tnow
 		if New.CreatedAt != Old.CreatedAt {
-			// Note: prevent edited
 			New.CreatedAt = Old.CreatedAt
 		}
 
@@ -126,9 +132,14 @@ func UpdateEnroll(Old *EnrollMod, New *EnrollMod) (*EnrollMod, error) {
 		upNew := bson.M{}
 		bson.Unmarshal(temp, upNew)
 		Returned := EnrollMod{}
-		_, err := DBConn.C(enroll_mod_name).Find(bson.M{"_id": Old.ID}).Apply(
+		_, err := DBConn.C(student_mod_name).Find(
+			bson.M{
+				"_id": bson.ObjectIdHex(stud_id),
+			},
+		).Apply(
 			mgo.Change{
-				Update:    bson.M{"$set": upNew},
+				Update: bson.M{
+					"$set": bson.M{"$$": upNew}},
 				ReturnNew: true,
 			},
 			&Returned,
@@ -136,7 +147,6 @@ func UpdateEnroll(Old *EnrollMod, New *EnrollMod) (*EnrollMod, error) {
 		// fmt.Println("info", info)
 		// fmt.Println("Returned", Returned)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
 		return &Returned, nil
@@ -146,9 +156,17 @@ func UpdateEnroll(Old *EnrollMod, New *EnrollMod) (*EnrollMod, error) {
 }
 
 // DeleteEnroll : Delete a Enroll
-func DeleteEnroll(cpid string) (bool, error) {
+func DeleteEnroll(sid string, cpid string) (bool, error) {
 	if DBConn != nil {
-		err := DBConn.C(enroll_mod_name).Remove(&bson.M{"_id": bson.ObjectIdHex(cpid)})
+		err := DBConn.C(student_mod_name).Update(bson.M{
+			"_id": bson.ObjectIdHex(sid),
+		}, bson.M{
+			"$pull": bson.M{
+				"enrolled": bson.M{
+					"_id": bson.ObjectIdHex(cpid),
+				},
+			},
+		})
 		if err != nil {
 			fmt.Println("Got a real error:", err.Error())
 			return false, err
@@ -161,9 +179,15 @@ func DeleteEnroll(cpid string) (bool, error) {
 }
 
 // TestEnroll : Test Enroll is not existed
-func TestEnroll(param map[string]interface{}) (bool, error) {
+func TestEnroll(sid string, param map[string]interface{}) (bool, error) {
 	if DBConn != nil {
-		count, err := DBConn.C(enroll_mod_name).Find(&param).Count()
+		count, err := DBConn.C(student_mod_name).Find(bson.M{
+			"_id": bson.ObjectIdHex(sid),
+			"enrolled": bson.M{
+				"$elemMatch": param,
+			},
+		},
+		).Count()
 		if err != nil {
 			return false, err
 		}

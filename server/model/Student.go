@@ -30,10 +30,7 @@ func FetchStudent(param interface{}, ps *PageMeta) ([]*StudentMod, *PageMeta, er
 	if DBConn != nil {
 		count, err := DBConn.C(student_mod_name).Find(&param).Count()
 		if err != nil {
-			fmt.Println("error")
-			fmt.Println(err)
-			fmt.Println("param")
-			fmt.Println(param)
+
 			return nil, nil, err
 		}
 		// fmt.Println("count:", count)
