@@ -35,6 +35,7 @@ func CreateEnroll(c *gin.Context) {
 			} else {
 				newO, err := json.Marshal(test)
 				if err = json.Unmarshal(newO, &tem); err == nil {
+
 					if k, err := m.CreateEnroll(id, &tem); err != nil {
 						RespondJSONWithError(c, 500, err)
 					} else {
@@ -146,28 +147,34 @@ func DeleteEnroll(c *gin.Context) {
 	id, err3 := c.Params.Get("stud_id")
 	cid, er2 := c.Params.Get("e_id")
 	var ftem map[string]interface{}
-	if c.BindJSON(&ftem) == nil {
-		notexist, err := m.TestEnroll(id, map[string]interface{}{
-			"_id": bson.ObjectIdHex(cid),
+	if !err3 || !er2 {
+		RespondJSONWithError(c, 500, map[string]interface{}{
+			"err": "no param of dept_id or course_id",
 		})
-		if err != nil {
-			RespondJSONWithError(c, 500, err)
-		} else {
-			if !notexist {
-				_, err := m.DeleteEnroll(id, cid)
-				if err != nil {
-					RespondJSONWithError(c, 500, err)
-				} else {
-					RespondJSON(c, 200, true, nil)
-				}
-			} else {
-				RespondJSONWithError(c, 500, common.ErrorMessage{
-					When: time.Now(),
-					What: "no exist Object is find for delete",
-				})
-			}
-		}
 	} else {
-		BindingErr(c, &m.EnrollMod{})
+		if c.BindJSON(&ftem) == nil {
+			notexist, err := m.TestEnroll(id, map[string]interface{}{
+				"_id": bson.ObjectIdHex(cid),
+			})
+			if err != nil {
+				RespondJSONWithError(c, 500, err)
+			} else {
+				if !notexist {
+					_, err := m.DeleteEnroll(id, cid)
+					if err != nil {
+						RespondJSONWithError(c, 500, err)
+					} else {
+						RespondJSON(c, 200, true, nil)
+					}
+				} else {
+					RespondJSONWithError(c, 500, common.ErrorMessage{
+						When: time.Now(),
+						What: "no exist Object is find for delete",
+					})
+				}
+			}
+		} else {
+			BindingErr(c, &m.EnrollMod{})
+		}
 	}
 }

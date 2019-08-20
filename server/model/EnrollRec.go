@@ -28,8 +28,6 @@ type StudentEnrollMod struct {
 	UpdatedAt *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
 
-var student_mod_name = "Enroll"
-
 // FetchEnroll : Get Enroll list
 func FetchStudEnroll(sid string, param interface{}, ps *PageMeta) ([]*EnrollMod, *PageMeta, error) {
 	var record *StudentMod
@@ -96,7 +94,6 @@ func GetEnroll(sid string, id string) (*EnrollMod, error) {
 func CreateEnroll(sid string, cp *EnrollMod) (*EnrollMod, error) {
 	if DBConn != nil {
 		tnow := time.Now()
-		fmt.Println("hi create")
 		if cp.ID == nil {
 			temID := bson.ObjectId(string(oid.NewOID().Bytes()))
 			fmt.Println("temId:", temID.String())
@@ -105,7 +102,32 @@ func CreateEnroll(sid string, cp *EnrollMod) (*EnrollMod, error) {
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
-		err := DBConn.C(student_mod_name).Update(bson.M{
+
+		// session
+
+		resultCursor := MgoCursorRes{}
+		err := DBConn.Run(bson.M{
+			"update": dept_mod_name,
+			"updates": []bson.M{bson.M{
+				"q": bson.M{
+					"courses.course_id":               cp.CourseID,
+					"courses.offers.year":             cp.Year,
+					"courses.offers.available_places": bson.M{"$gt": 0},
+				},
+				"u": bson.M{
+					"$inc": bson.M{"courses.$[ele].offers.$[elem].available_places": -1},
+				},
+				"arrayFilters": []bson.M{
+					bson.M{"ele.course_id": bson.M{"$eq": cp.CourseID}},
+					bson.M{"elem.year": bson.M{"$eq": cp.Year}},
+				},
+			}},
+		}, &resultCursor)
+		if err != nil {
+			return nil, err
+		}
+
+		err = DBConn.C(student_mod_name).Update(bson.M{
 			"_id": bson.ObjectIdHex(sid),
 		}, bson.M{
 			"$push": bson.M{"enrolled": &cp},
@@ -162,9 +184,7 @@ func DeleteEnroll(sid string, cpid string) (bool, error) {
 			"_id": bson.ObjectIdHex(sid),
 		}, bson.M{
 			"$pull": bson.M{
-				"enrolled": bson.M{
-					"_id": bson.ObjectIdHex(cpid),
-				},
+				"enrolled._id": bson.ObjectIdHex(cpid),
 			},
 		})
 		if err != nil {

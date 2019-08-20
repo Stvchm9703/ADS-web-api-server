@@ -2,35 +2,41 @@
 div
   section.hero.is-info
     .hero-body
-      .container.has-text-left
+      .container.has-text-centered
         p.title {{deptName}}
         p.subtitle {{deptId}}
     .hero-foot
       nav.tabs.is-boxed.is-fullwidth
         .container
           ul
-            li.is-active
-              nuxt-link(:to='"/dept/" + this.objId ')  Overview
             li
-              nuxt-link(:to='"/dept/" + this.objId + "/course" ') Course List
+              nuxt-link(:to='"/dept/" + objId ')  Overview
+            li.is-active
+              nuxt-link(:to='"/dept/" + objId + "/course" ')  Overview Course List
+
+
   section.section
-    Info(
-      :deptName="deptName"
-      :deptId="deptId"
-      :location="location"
-      :course="courseList"
-      :createdAt="createdAt"
-      :lastUpdated="lastUpdated"
-    )
-  
+    .columns.is-multiline
+      card(
+        v-for='c in courseList'
+          :deptName='deptName'
+          :deptId='deptId'
+          :deptObjId='objId'
+          :objId='c._id'
+          :courseId='c.course_id'
+          :title='c.title'
+          :level='c.level'
+          :offers='c.offers'
+          :createdAt='c.created_at'
+          :lastUpdated='c.updated_at'
+        )
 </template>
 
 <script>
-
-import Info from '~/components/DeptInfo.vue'
-
+import moment from 'moment'
+import Card from '~/components/CourseCard.vue'
 export default {
-  components: { Info },
+  components: { Card },
   data : () => ({
     objId : "",
     deptName : "",
@@ -40,6 +46,16 @@ export default {
     lastUpdated: "",
     createdAt : ""
   }),
+  computed: {
+    courseCount () {
+      return this.courseList.length;
+    }
+  },
+  filters: {
+    timeFormat (i){
+      return moment(i , "YYYY-MM-DDTHH:mm:ssZ").format("YYYY-MM-DD")
+    }
+  },
   methods: {
     async fetchDept(){
       let ip = await this.$axios.$get('/api/v1/g/dept/' + this.$route.params["id"] )

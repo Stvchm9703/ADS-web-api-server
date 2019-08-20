@@ -18,6 +18,7 @@ export default {
   css: [
   ],
   plugins: [
+    '~/plugins/axios'
   ],
   devModules: [
     // Doc: https://github.com/nuxt-community/eslint-module
@@ -29,9 +30,17 @@ export default {
     '@nuxtjs/pwa'
   ],
   axios: {
+    proxy : true,
   },
+   proxy: {
+       '/api': {
+           target: 'http://0.0.0.0:8080',
+           pathRewrite: {
+               '^/api': '/api'
+           }
+       }
+   },
   generate: { 
     dir : 'dist',
-    
   }
 }

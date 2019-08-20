@@ -1,11 +1,12 @@
 <template lang="pug">
 section.section
-  .columns
+  .columns.is-multiline
     card(
-      deptName='Computer Science'
-      deptId='CS'
-      objId='1234y9qwhk'
-      courseCount=13
+      v-for="k in deptList"
+      :deptName='k.dept_name'
+      :deptId='k.dept_id'
+      :objId='k._id'
+      :courseCount='k.courses.length'
       )
 </template>
 
@@ -14,10 +15,23 @@ import Card from '~/components/DeptCard.vue'
 export default {
   name: 'deptPage',
   components: { Card },
-  methods: {
-    hello () {
-      return 'hello'
+  data : () => ({
+    deptList: [],
+  }),
+  filters: {
+    timeFormat (i){
+      return moment(i , "YYYY-MM-DDTHH:mm:ssZ").format("YYYY-MM-DD")
     }
-  }
+  },
+  methods: {
+    async fetchDept(){
+      let qwe = await this.$axios.$get('/api/v1/l/dept')
+      this.deptList = qwe.data
+    }
+  },
+  beforeMount () {
+    this.fetchDept()
+  } 
+
 }
 </script>

@@ -6,7 +6,6 @@ import (
 	// "log"
 	"time"
 
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
 	oid "github.com/coolbed/mgo-oid"
@@ -159,25 +158,46 @@ func UpdateCourse(dept_id string, Old *CourseMod, New *CourseMod) (*CourseMod, e
 		bson.Unmarshal(temp, upNew)
 		delete(upNew, "Offers")
 		fmt.Println("update upNew", upNew)
-		Returned := CourseMod{}
-		_, err := DBConn.C(dept_mod_name).Find(bson.M{
-			"_id":        bson.ObjectIdHex(dept_id),
-			"course._id": Old.ID,
-		}).Apply(
-			mgo.Change{
-				Update: bson.M{
-					"$set": bson.M{
-						"$$": upNew,
-					},
+		// Returned := CourseMod{}
+		// _, err := DBConn.C(dept_mod_name).Find(bson.M{
+		// 	"_id":        bson.ObjectIdHex(dept_id),
+		// 	"course._id": Old.ID,
+		// }).Apply(
+		// 	mgo.Change{
+		// 		Update: bson.M{
+		// 			"$set": bson.M{
+		// 				"$$": upNew,
+		// 			},
+		// 		},
+		// 		ReturnNew: true,
+		// 	},
+		// 	&Returned,
+		// )
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// return &Returned, nil
+		resultCursor := MgoCursorRes{}
+		err := DBConn.Run(bson.M{
+			"update": dept_mod_name,
+			"updates": []bson.M{bson.M{
+				"q": bson.M{
+					"_id":         bson.ObjectIdHex(dept_id),
+					"courses._id": Old.ID,
 				},
-				ReturnNew: true,
-			},
-			&Returned,
-		)
+				"u": bson.M{"$set": bson.M{
+					"courses.$[ele]": upNew,
+				}},
+				"arrayFilters": []bson.M{
+					bson.M{"ele._id": bson.M{"$eq": Old.ID}},
+				},
+			}},
+		}, &resultCursor)
 		if err != nil {
 			return nil, err
 		}
-		return &Returned, nil
+
+		return GetDeptCourse(dept_id, Old.ID.Hex())
 	}
 	_, err := NotConn()
 	return nil, err
@@ -191,9 +211,7 @@ func DeleteCourse(dept_id string, cpid string) (bool, error) {
 			"_id": bson.ObjectIdHex(dept_id),
 		}, bson.M{
 			"$pull": bson.M{
-				"courses": bson.M{
-					"_id": bson.ObjectIdHex(cpid),
-				},
+				"courses._id": bson.ObjectIdHex(cpid),
 			},
 		})
 
@@ -219,7 +237,6 @@ func TestCourse(dept_id string, param map[string]interface{}) (bool, error) {
 				},
 			},
 		).Count()
-
 		if err != nil {
 			return false, err
 		}

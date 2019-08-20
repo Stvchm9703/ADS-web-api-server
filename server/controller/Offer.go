@@ -61,7 +61,7 @@ func GetOfferList(c *gin.Context) {
 		PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
 		PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
 		// search
-		o := BindQuery(c.Request.URL.Query(), m.CourseMod{})
+		o := BindQuery(c.Request.URL.Query(), m.OfferMod{})
 		if len(id) == 24 {
 			k, PS1, err2 := m.FetchCourseOffer(id, o, &PS)
 			if err2 != nil {
@@ -70,7 +70,8 @@ func GetOfferList(c *gin.Context) {
 				RespondJSON(c, 200, k, PS1)
 			}
 		} else {
-			fmt.Println("FetchAllCourse")
+			fmt.Println("FetchAllOffer")
+			fmt.Println(o)
 			k, PS1, err2 := m.FetchAllOffer(o, &PS)
 			if err2 != nil {
 				RespondJSONWithError(c, 500, err2)
