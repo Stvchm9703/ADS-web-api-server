@@ -122,9 +122,9 @@ func UpdateOffer(c *gin.Context) {
 				if k1 != nil {
 					newO, err := json.Marshal(ftem)
 					if err = json.Unmarshal(newO, &tem); err == nil {
-						k, err := m.UpdateOffer(id, k1, &tem)
+						k, err := m.UpdateOffer(course_id, k1, &tem)
 						if err != nil {
-							log.Println("update Offer", err)
+							log.Println("update Offer", err.Error())
 							RespondJSONWithError(c, 500, err)
 						} else {
 							RespondJSON(c, 200, k, nil)

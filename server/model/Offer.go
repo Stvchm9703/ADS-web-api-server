@@ -171,6 +171,8 @@ func UpdateOffer(courseId string, Old *OfferMod, New *OfferMod) (*OfferMod, erro
 
 	ojson, _ := json.Marshal(Old)
 	// njson, _ := json.Marshal(New)
+	// g := map[string]string{}
+	// _ = json.Unmarshal(ojson, &g)
 	fmt.Println("Old", string(ojson))
 
 	if DBConn != nil {
@@ -179,36 +181,39 @@ func UpdateOffer(courseId string, Old *OfferMod, New *OfferMod) (*OfferMod, erro
 		if New.CreatedAt != Old.CreatedAt {
 			New.CreatedAt = Old.CreatedAt
 		}
+		// did := bson.ObjectIdHex(g["_id"])
 		New.ID = Old.ID
-		njson, _ := json.Marshal(New)
-		fmt.Println("New", string(njson))
-		updateCDM := bson.M{
-			"q": bson.M{
-				"courses._id":        bson.ObjectIdHex(courseId),
-				"courses.offers._id": Old.ID,
-			},
-			"u": bson.M{
-				"$set": bson.M{"courses.$[ele].offers.$[elem]": New},
-			},
-			"arrayFilters": []bson.M{
-				bson.M{"ele._id": bson.M{"$eq": bson.ObjectIdHex(courseId)}},
-				bson.M{"elem._id": bson.M{"$eq": Old.ID}},
+
+		fmt.Println("New", *New)
+		cmdList := []bson.M{
+			bson.M{
+				"q": bson.M{
+					"courses._id":        bson.ObjectIdHex(courseId),
+					"courses.offers._id": Old.ID,
+				},
+				"u": bson.M{
+					"$set": bson.M{"courses.$[ele].offers.$[elem]": New},
+				},
+				"arrayFilters": []bson.M{
+					bson.M{"ele._id": bson.M{"$eq": bson.ObjectIdHex(courseId)}},
+					bson.M{"elem._id": bson.M{"$eq": Old.ID}},
+				},
 			},
 		}
-		var result *OfferMod
-
 		resultCursor := bson.M{}
-		err := DBConn.Run(bson.M{
-			"update":  dept_mod_name,
-			"updates": []bson.M{updateCDM},
+		fmt.Println("DBConn", DBConn)
+		err := DBConn.Run(bson.D{
+			{"update", dept_mod_name},
+			{"updates", &cmdList},
+			{"ordered", true},
 		}, &resultCursor)
-		fmt.Println("resultCursor:", resultCursor)
 		if err != nil {
-			fmt.Println("update err", err)
+			fmt.Print(err.Error())
 			return nil, err
 		}
 
-		err = DBConn.C(dept_mod_name).Pipe([]bson.M{
+		var result *OfferMod
+		_ = DBConn.C(dept_mod_name).Pipe([]bson.M{
 			bson.M{"$match": bson.M{
 				"courses._id":        bson.ObjectIdHex(courseId),
 				"courses.offers._id": Old.ID,
