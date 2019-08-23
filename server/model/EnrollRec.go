@@ -1,11 +1,11 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	oid "github.com/coolbed/mgo-oid"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -77,9 +77,22 @@ func FetchAllEnroll(param interface{}, ps *PageMeta) ([]*StudentEnrollMod, *Page
 func GetEnroll(sid string, id string) (*EnrollMod, error) {
 	if DBConn != nil {
 		var result *StudentEnrollMod
-		err := DBConn.C(student_mod_name).Find(bson.M{
-			"_id":          bson.ObjectIdHex(sid),
-			"enrolled._id": bson.ObjectIdHex(id),
+		// err := DBConn.C(student_mod_name).Find(bson.M{
+		// 	"_id":          bson.ObjectIdHex(sid),
+		// 	"enrolled._id": bson.ObjectIdHex(id),
+		// }).One(&result)
+		err := DBConn.C(student_mod_name).Pipe([]bson.M{
+			bson.M{"$match": bson.M{
+				"_id": bson.ObjectIdHex(sid),
+				"enrolled": bson.M{
+					"$elemMatch": bson.M{"_id": bson.ObjectIdHex(id)},
+				},
+			}},
+			bson.M{"$unwind": "$enrolled"},
+			bson.M{"$match": bson.M{
+				"_id":          bson.ObjectIdHex(sid),
+				"enrolled._id": bson.ObjectIdHex(id),
+			}},
 		}).One(&result)
 		if err != nil {
 			return nil, err
@@ -149,29 +162,56 @@ func UpdateEnroll(stud_id string, Old *EnrollMod, New *EnrollMod) (*EnrollMod, e
 		if New.CreatedAt != Old.CreatedAt {
 			New.CreatedAt = Old.CreatedAt
 		}
-
+		tempO, _ := json.Marshal(New)
+		fmt.Println(string(tempO))
 		temp, _ := bson.Marshal(New)
 		upNew := bson.M{}
 		bson.Unmarshal(temp, upNew)
-		Returned := EnrollMod{}
-		_, err := DBConn.C(student_mod_name).Find(
-			bson.M{
-				"_id": bson.ObjectIdHex(stud_id),
-			},
-		).Apply(
-			mgo.Change{
-				Update: bson.M{
-					"$set": bson.M{"$$": upNew}},
-				ReturnNew: true,
-			},
-			&Returned,
-		)
-		// fmt.Println("info", info)
-		// fmt.Println("Returned", Returned)
+		upNew["_id"] = Old.ID
+		fmt.Println(upNew)
+
+		resultCursor := bson.M{}
+		err := DBConn.Run(bson.M{
+			"update": student_mod_name,
+			"updates": []bson.M{bson.M{
+				"q": bson.M{
+					"_id":          bson.ObjectIdHex(stud_id),
+					"enrolled._id": Old.ID,
+				},
+				"u": bson.M{"$set": bson.M{
+					"enrolled.$[ele]": upNew,
+				}},
+				"arrayFilters": []bson.M{
+					bson.M{"ele._id": bson.M{"$eq": Old.ID}},
+				},
+			}},
+		}, &resultCursor)
+		// fmt.Println()
+		// fmt.Println("resultCursor:", resultCursor)
+		// fmt.Println()
+
 		if err != nil {
 			return nil, err
 		}
-		return &Returned, nil
+		Returned := StudentEnrollMod{}
+		err = DBConn.C(student_mod_name).Pipe([]bson.M{
+			bson.M{"$match": bson.M{
+				"_id": bson.ObjectIdHex(stud_id),
+				"enrolled": bson.M{
+					"$elemMatch": bson.M{"_id": Old.ID},
+				},
+			}},
+			bson.M{"$unwind": "$enrolled"},
+			bson.M{"$match": bson.M{
+				"_id":          bson.ObjectIdHex(stud_id),
+				"enrolled._id": Old.ID,
+			}},
+		}).One(&Returned)
+
+		if err != nil {
+			return nil, err
+		}
+		return Returned.Enrolled, nil
 	}
 	_, err := NotConn()
 	return nil, err
@@ -184,7 +224,7 @@ func DeleteEnroll(sid string, cpid string) (bool, error) {
 			"_id": bson.ObjectIdHex(sid),
 		}, bson.M{
 			"$pull": bson.M{
-				"enrolled._id": bson.ObjectIdHex(cpid),
+				"enrolled": bson.M{"_id": bson.ObjectIdHex(cpid)},
 			},
 		})
 		if err != nil {

@@ -101,26 +101,30 @@ func GetOffer(c *gin.Context) {
 }
 
 func UpdateOffer(c *gin.Context) {
-	id, err3 := c.Params.Get("dept_id")
 	course_id, er2 := c.Params.Get("course_id")
+	id, err3 := c.Params.Get("offer_id")
 	var ftem map[string]interface{}
-	var tem m.CourseMod
+	var tem m.OfferMod
 	if !err3 || !er2 {
 		RespondJSONWithError(c, 500, map[string]interface{}{
 			"err": "no param of dept_id or course_id",
 		})
 	} else {
+		fmt.Println("course_id", course_id, ",id", id)
 		if c.BindJSON(&ftem) == nil {
-			k1, errr := m.GetDeptCourse(id, course_id)
+			fmt.Println("ftem", ftem)
+			k1, errr := m.GetOffer(course_id, id)
+			fmt.Println("k1", k1)
 			if errr != nil {
+				fmt.Println("errr", errr)
 				RespondJSONWithError(c, 500, errr)
 			} else {
 				if k1 != nil {
 					newO, err := json.Marshal(ftem)
 					if err = json.Unmarshal(newO, &tem); err == nil {
-						k, err := m.UpdateCourse(id, k1, &tem)
+						k, err := m.UpdateOffer(id, k1, &tem)
 						if err != nil {
-							log.Println(err)
+							log.Println("update Offer", err)
 							RespondJSONWithError(c, 500, err)
 						} else {
 							RespondJSON(c, 200, k, nil)
@@ -142,22 +146,23 @@ func UpdateOffer(c *gin.Context) {
 }
 
 func DeleteOffer(c *gin.Context) {
-	id, err3 := c.Params.Get("dept_id")
-	cid, er2 := c.Params.Get("course_id")
+	id, err3 := c.Params.Get("course_id")
+	cid, er2 := c.Params.Get("offer_id")
 	if !err3 || !er2 {
 		RespondJSONWithError(c, 500, map[string]interface{}{
 			"err": "no param of dept_id or course_id",
 		})
 	} else {
 
-		notexist, err := m.TestCourse(id, map[string]interface{}{
+		notexist, err := m.TestOffer(id, map[string]interface{}{
 			"_id": bson.ObjectIdHex(cid),
 		})
+		fmt.Println("notexist", notexist)
 		if err != nil {
 			RespondJSONWithError(c, 500, err)
 		} else {
 			if !notexist {
-				_, err := m.DeleteCourse(id, cid)
+				_, err := m.DeleteOffer(id, cid)
 				if err != nil {
 					RespondJSONWithError(c, 500, err)
 				} else {

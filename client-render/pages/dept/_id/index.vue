@@ -15,6 +15,7 @@ div
               nuxt-link(:to='"/dept/" + this.objId + "/course" ') Course List
   section.section
     Info(
+      :objId="objId"
       :deptName="deptName"
       :deptId="deptId"
       :location="location"
@@ -46,11 +47,11 @@ export default {
       this.objId = ip.data._id
       this.deptName = ip.data.dept_name
       this.deptId = ip.data.dept_id
-      this.courseList = ip.data.courses
+      this.courseList = ip.data.courses == null ? [] : ip.data.courses
       this.location = ip.data.location
       this.lastUpdated = ip.data.updated_at
       this.createdAt = ip.data.created_at
-    }
+    },
   },
   beforeMount () {
     this.fetchDept()

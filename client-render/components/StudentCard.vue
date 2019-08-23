@@ -1,28 +1,28 @@
 <template lang="pug">
 
 section.column.is-one-third
-  b-collapse.card(:aria-id='"contentId" + courseId' :open='false')
+  b-collapse.card(:aria-id='"contentId" + objId' :open='false')
     .card-header(
       slot='trigger' 
       slot-scope='props' 
       role='button' 
-      :aria-controls='"contentId" + courseId')
+      :aria-controls='"contentId" + objId')
       p.card-header-title
-        | {{title}} | {{courseId}}
+        | {{student_name}} | {{student_id}}
       a.card-header-icon
         b-icon(:icon="props.open ? 'menu-down' : 'menu-up'")
     .card-content
       .content
-        p level: {{level}}
-        p Department : 
-          nuxt-link(:to='"/dept/" + deptObjId ') {{deptName}} ({{deptId}})
-        p Total Offers Count : {{Offers? Offers.length:0}}
+        p Student Name: {{student_name}}
+        p Student id : {{student_id}}
+        p Day of Birth : {{dob|timeFormat}}
+        p Total Enrolled Count : {{enrolled? enrolled.length:0}}
         p Created at : {{createdAt|timeFormat}}
         p Last updated : {{lastUpdated | timeFormat}}
     footer.card-footer
       nuxt-link.card-footer-item(
-        :to='"/dept/" + deptObjId + "/course/" + objId '
-        ) Cousre Detail
+        :to='"/student/" + objId '
+        ) Student Detail
 
       .card-footer-item.has-text-danger(
         @click="warnDelete()"
@@ -36,13 +36,10 @@ export default {
   name: "CourseCard",
   props: {
     objId: { type: String },
-    deptId: { type: String },
-    deptName: { type: String },
-    deptObjId: { type: String },
-    courseId: { type: String },
-    title: { type: String },
-    level: { type: Number },
-    Offers: { type: Array, default: function() { return []; } },
+    student_name: { type: String },
+    student_id: { type: String },
+    dob: { type: String },
+    enrolled: { type: Array, default: function() { return []; } },
     createdAt: { type: String },
     lastUpdated: { type: String }
   },
@@ -54,22 +51,24 @@ export default {
   methods: {
     warnDelete() {
       this.$buefy.dialog.confirm({
-        title: "Deleting Course",
+        title: "Deleting Student",
         message:
-          "Are you sure you want to <b>delete</b> this Course? This action cannot be undone.",
+          "Are you sure you want to <b>delete</b> this Student? This action cannot be undone.",
         confirmText: "Delete Course",
         type: "is-danger",
         hasIcon: true,
-        onConfirm:()=>{ this.deleteCourse()}
+        onConfirm: () => {
+          this.deleteStudent();
+        }
       });
     },
-    async deleteCourse() {
+    async deleteStudent() {
       let requet_pack = {
         _id: this.objId
       };
       try {
         let ip = await this.$axios.$post(
-          "/api/v1/d/dept/" + this.deptObjId + "/course/" + this.objId
+          "/api/v1/d/student/" , requet_pack
         );
         this.$buefy.toast.open({
           duration: 5000,

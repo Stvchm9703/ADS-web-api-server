@@ -66,7 +66,7 @@ func GetStudentList(c *gin.Context) {
 
 func GetStudent(c *gin.Context) {
 	fmt.Println(c.Params)
-	id, err := c.Params.Get("stu_id")
+	id, err := c.Params.Get("stud_id")
 	if err == false {
 		RespondJSONWithError(c, 500, err)
 	} else {

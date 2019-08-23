@@ -1,12 +1,16 @@
 <template lang="pug">
 section.section
   .columns.is-multiline
+    .column
+      nuxt-link.button.is-primary(to="/create/dept") Create Department
+  
+  .columns.is-multiline
     card(
       v-for="k in deptList"
       :deptName='k.dept_name'
       :deptId='k.dept_id'
       :objId='k._id'
-      :courseCount='k.courses.length'
+      :courseCount='k.courses? k.courses.length: 0'
       )
 </template>
 

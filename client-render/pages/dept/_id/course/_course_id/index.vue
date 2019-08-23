@@ -21,87 +21,135 @@ div
           | Information
       h2.subtitle
           | Basic information of the Course
-      .columns
-          .column.is-one-quarter-fullhd.is-one-third-widescreen.is-full-desktop.is-full-tablet.is-full-mobile
+      .columns.is-multiline
+          .column
             h3  Title 
-          .column.is-third-quarter-fullhd.is-two-third-widescreen.is-full-desktop.is-full-tablet.is-full-mobile
+          .column
             p {{course_title}}
-      .columns
-          .column.is-one-quarter-fullhd.is-one-third-widescreen.is-full-desktop.is-full-tablet.is-full-mobile
+      .columns.is-multiline
+          .column
             h3  Course Id Code 
-          .column.is-third-quarter-fullhd.is-two-third-widescreen.is-full-desktop.is-full-tablet.is-full-mobile
+          .column
             p {{course_id}}
      
-      .columns
-          .column.is-one-quarter-fullhd.is-one-third-widescreen.is-full-desktop.is-full-tablet.is-full-mobile
+      .columns.is-multiline
+          .column.is-half-tablet.is-full-mobile
             h3  Total Offers Count: 
-          .column.is-third-quarter-fullhd.is-two-third-widescreen.is-full-desktop.is-full-tablet.is-full-mobile
-            p {{offers_count.length}}
+          .column.is-half-tablet.is-full-mobile
+            p {{offers? offers.length : 0}}
 
       .columns
           .column.is-full
           hr
-      .columns
+      
+      .columns.is-multiline
           .column.is-one-third-fullhd.is-one-third-widescreen.is-half-desktop.is-full-tablet.is-full-mobile
             h3 Created at : {{createdAt|timeFormat}}  
           .column.is-one-third-fullhd.is-one-third-widescreen.is-half-desktop.is-full-tablet.is-full-mobile
             h3 Last Update at :  {{lastUpdated|timeFormat}}  
-      .columns.is-vcentered
+      
+      .columns.is-vcentered.is-multiline
           .column.is-half-fullhd.is-half-widescreen.is-half-desktop.is-full-tablet.is-full-mobile
-            button.button.is-primary  Update information
+            nuxt-link.button.is-primary(
+              :to='"/dept/" + deptObjId + "/course/" + course_obj_id + "/update"'
+            )  Update Course
           .column.is-half-fullhd.is-half-widescreen.is-half-desktop.is-full-tablet.is-full-mobile
-            button.button.is-danger  delete information
+            b-button.is-danger(
+              @click='warnDelete()'
+            )  Delete Course
       
 </template>
 
 <script>
-
-import Info from '~/components/DeptInfo.vue'
+import moment from "moment";
+import Info from "~/components/DeptInfo.vue";
 
 export default {
   components: { Info },
-  data : () => ({
-    deptName : "",
-    deptId : "",
-    deptObjId : "",
-    course_obj_id : "",
-    course_id : "",
-    course_title :"",
-    lastUpdated : "",
-    createdAt : "",
-    offers_count : [],
+  data: () => ({
+    deptName: "",
+    deptId: "",
+    deptObjId: "",
+    course_obj_id: "",
+    course_id: "",
+    course_title: "",
+    lastUpdated: "",
+    createdAt: "",
+    offers: []
   }),
-  methods: {
-    async fetchDept(){
-      let ip = await this.$axios.$get(
-        '/api/v1/g/dept/' + 
-        this.$route.params["id"]   
-      )
-      console.log(ip)
-      this.deptName = ip.data.dept_name
-      this.deptId = ip.data.dept_id
-      this.deptObjId = ip.data._id
-    },
-    async fetchCourse(){
-      let   ip = await this.$axios.$get(
-        '/api/v1/g/dept/' + 
-        this.$route.params["id"] +
-        '/course/' + 
-        this.$route.params["course_id"]    
-      )
-      console.log(ip)
-      this.course_obj_id = ip.data._id
-      this.course_id = ip.data.course_id
-      this.course_title = ip.data.title
-      this.lastUpdated = ip.data.updated_at
-      this.createdAt = ip.data.created_at
-      this.offers_count = ip.data.offers
+  filters: {
+    timeFormat(i) {
+      return moment(i, "YYYY-MM-DDTHH:mm:ssZ").format("YYYY-MM-DD HH:mm:ss");
     }
   },
-  beforeMount () {
-    this.fetchDept()
-    this.fetchCourse()
-  } 
+  methods: {
+    async fetchDept() {
+      let ip = await this.$axios.$get(
+        "/api/v1/g/dept/" + this.$route.params["id"]
+      );
+      console.log(ip);
+      this.deptName = ip.data.dept_name;
+      this.deptId = ip.data.dept_id;
+      this.deptObjId = ip.data._id;
+    },
+    async fetchCourse() {
 
-}
+      let ip = await this.$axios.$get(
+        "/api/v1/g/dept/" +
+          this.$route.params["id"] +
+          "/course/" +
+          this.$route.params["course_id"]
+      );
+      console.log(ip);
+      this.course_obj_id = ip.data._id;
+      this.course_id = ip.data.course_id;
+      this.course_title = ip.data.title;
+      this.lastUpdated = ip.data.updated_at;
+      this.createdAt = ip.data.created_at;
+      this.offers = ip.data.offers;
+    },
+    warnDelete() {
+      this.$buefy.dialog.confirm({
+        title: "Deleting Course",
+        message:
+          "Are you sure you want to <b>delete</b> this Cousre? This action cannot be undone.",
+        confirmText: "Delete Cousre",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm:()=>{ this.deleteCourse()}
+      });
+    },
+    async deleteCourse() {
+      let requet_pack = {
+        _id: this.objId
+      };
+      try {
+        let ip = await this.$axios.$post(
+          "/api/v1/d/dept/" + this.deptObjId + "/course/" + this.course_obj_id
+        );
+        this.$buefy.toast.open({
+          duration: 5000,
+          message: `Delete Success !`,
+          position: "is-bottom",
+          type: "is-success"
+        });
+        this.$router.push({
+          path : '/dept/' + this.deptObjId + '/course'
+        })
+      } catch (e) {
+        console.warn(e);
+        this.$buefy.toast.open({
+          duration: 5000,
+          message: `Delete Fail !`,
+          position: "is-bottom",
+          type: "is-danger"
+        });
+      } 
+    }
+  },
+  beforeMount() {
+    this.fetchDept();
+    this.fetchCourse();
+  }
+};
 </script>

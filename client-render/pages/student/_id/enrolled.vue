@@ -3,58 +3,54 @@ div
   section.hero.is-info
     .hero-body
       .container.has-text-left
-        p.title.is-left {{course_title}} ({{course_id}})
-        p.subtitle {{deptName}} ({{deptId}})
+        p.title {{student_name}}
+        p.subtitle {{student_id}}
     .hero-foot
       nav.tabs.is-boxed.is-fullwidth
         .container
           ul
             li
-              nuxt-link(:to='"/dept/" + deptObjId+ "/course/" + course_obj_id ')  Overview
+              nuxt-link(:to='"/student/" + this.objId ')  Overview
             li.is-active
-              nuxt-link(:to='"/dept/" + deptObjId+ "/course/" + course_obj_id  + "/offer" ')  Offers List
-            li
-
+              nuxt-link(:to='"/student/" + this.objId + "/enrolled" ') Enrolled Course List
 
   section.section
-    h2.title  Offers in over years
+    h2.title  Enrolled Course
     .container
       .columns.is-multiline
         .column
           b-collapse(
             :open.sync='createBlock_isopen'
-            aria-id='createOfferId')
+            aria-id='createEnroll')
             b-button.is-primary(
               @click="createReady()"
               slot='trigger' 
-              aria-controls='createOfferId') Create Offer
+              aria-controls='createEnroll') Enroll New Course
             section.section
               b-field(grouped group-multiline)
-                b-field( label="Year"  horizontal)
-                  b-input(
-                    type="number"
-                    placeholder="Year" 
-                    v-model="tmpRow.year")
-                b-field( label="Class size"  horizontal )
-                  b-input(
-                    type="number"
-                    placeholder="Class size"
-                    v-model="tmpRow.class_size")
-                b-field( label="Available Places"  horizontal)
-                  b-input(
-                    type="number"
-                    placeholder="Available Places"
-                    width="40"
-                    v-model="tmpRow.available_places")
-              b-field(grouped group-multiline)
+                b-field(label='Course' horizontal )
+                  b-select(placeholder='Select a Course' width="160" v-model='co_course_id')
+                    option(v-for='option in createOptCourse' :value='option.course_id' :key='option._id')
+                      | {{ option.course_id }} | {{option.title}}
+              
+                  //- b-field(grouped group-multiline)
+                b-field(label='Offer' horizontal)
+                  b-select(placeholder='Offer Year' v-model='co_year')
+                    option(v-for='option in createOptYear' :value='option.offers.year' :key='option.offers._id')
+                      | {{ option.offers.year }} 
+
+                b-field(label='Enroll Date' horizontal)
+                  b-datepicker( v-model='co_date' )
+                  
+                  //- b-field(grouped group-multiline)
                 b-field
-                  b-button.is-primary(@click="createOffer()") Create
+                  b-button.is-primary(@click="createEnroll()") Create
                 b-field
                   b-button(@click="cancelCreate()") Cancel
                 
       .content  
         b-table(grouped group-multiline 
-          :data="offers"
+          :data="enrolled"
           ref="table"
           :opened-detailed="defaultOpenedDetails"
           detailed
@@ -78,12 +74,12 @@ div
           template(slot-scope='props')
             b-table-column(field='id' label='ID' width='40' :visible="false" )
               | {{ props.row._id }}
+            b-table-column(field='course' label='Course' width='160' sortable='')
+              | {{ props.row.course_id }}
             b-table-column(field='year' label='Year' width='100' sortable='')
               | {{ props.row.year }}
-            b-table-column(field='class_size' label='Class Size' width='160' sortable='')
-              | {{ props.row.class_size }}
-            b-table-column(field='available_places' label='Available Places'  width='160' sortable='')
-              | {{ props.row.available_places }}
+            b-table-column(field='enroll_date' label='Enroll Date'  width='160' sortable='')
+              | {{ props.row.enroll_date | timeFormat }}
             b-table-column(field='created_at' label='Created at'  width='160' sortable='')
               | {{props.row.created_at | timeFormat}}
             b-table-column(field='updated_at' label='Last Updated at'  width='160' sortable='')
@@ -97,21 +93,20 @@ div
           template(slot='detail' slot-scope='props')
             section
               b-field(grouped group-multiline)
-                b-field( label="Year"  horizontal)
-                  b-input(placeholder="Year" 
-                    type="number"  v-model="tmpRow.year")
+                b-field(label='Course' horizontal )
+                  b-select(placeholder='Select a Course' width="160" v-model='tmpRow.course_id')
+                    option(v-for='option in createOptCourse' :value='option.course_id' :key='option._id')
+                      | {{ option.course_id }} | {{option.title}}
+              
+                b-field(label='Offer' horizontal)
+                  b-select(placeholder='Offer Year' v-model='tmpRow.year')
+                    option(v-for='option in editOptYear' :value='option.offers.year' :key='option.offers._id')
+                      | {{ option.offers.year }} 
 
-                b-field( label="Class size"  horizontal )
-                  b-input(placeholder="Class size"
-                    type="number"  v-model="tmpRow.class_size")
-                    
-                b-field( label="Available Places"  horizontal)
-                  b-input(placeholder="Available Places"
-                    width="40"
-                    type="number"  v-model="tmpRow.available_places")
-
+                b-field(label='Enroll Date' horizontal)
+                  b-datepicker( v-model='tmpRow.enroll_date' )
                 b-field
-                  b-button(@click="saveOffer()") Save
+                  b-button.is-primary(@click="saveEnroll()") Save
                 b-field
                   b-button(@click="closeCancel(props.row)") Cancel
 </template>
@@ -122,15 +117,12 @@ import cdw from "lodash/cloneDeep";
 export default {
   name: "OfferPage",
   data: () => ({
-    deptName: "",
-    deptId: "",
-    deptObjId: "",
-    course_obj_id: "",
-    course_id: "",
-    course_title: "",
-    lastUpdated: "",
-    createdAt: "",
-    offers: [],
+    student_name: "",
+    student_id: "",
+    objId: "",
+    enrolled: [],
+
+    OfferOpt: [],
 
     isPaginated: true,
     isPaginationSimple: false,
@@ -144,6 +136,10 @@ export default {
 
     tmpRow: {},
 
+    co_course_id: "",
+    co_year: new Date().getFullYear(),
+    co_date: new Date(),
+
     createBlock_isopen: false
   }),
   filters: {
@@ -151,73 +147,90 @@ export default {
       return moment(i, "YYYY-MM-DDTHH:mm:ssZ").format("YYYY-MM-DD HH:mm:ss");
     }
   },
-  methods: {
-    async fetchDept() {
-      let ip = await this.$axios.$get(
-        "/api/v1/g/dept/" + this.$route.params["id"]
-      );
-      this.deptName = ip.data.dept_name;
-      this.deptId = ip.data.dept_id;
-      this.deptObjId = ip.data._id;
+  computed: {
+    createOptCourse() {
+      return this.OfferOpt
+        ? this.OfferOpt.reduce((i, c) => {
+            if (i.length === 0 || i[i.length - 1].course_id !== c.course_id) {
+              i.push(c);
+            }
+            return i;
+          }, [])
+        : [];
     },
-
-    async fetchCourse() {
+    createOptYear() {
+      return this.OfferOpt
+        ? this.OfferOpt.filter(e => {
+            return e.course_id == this.co_course_id;
+          })
+        : [];
+    },
+    editOptYear() {
+      return this.OfferOpt
+        ? this.OfferOpt.filter(e => {
+            return e.course_id == this.tmpRow.course_id;
+          })
+        : [];
+    }
+  },
+  methods: {
+    async fetchStudent() {
       try {
         let ip = await this.$axios.$get(
-          "/api/v1/g/dept/" +
-            this.$route.params["id"] +
-            "/course/" +
-            this.$route.params["course_id"]
+          "/api/v1/g/student/" + this.$route.params["id"]
         );
-        console.log(ip);
-        this.course_obj_id = ip.data._id;
-        this.course_id = ip.data.course_id;
-        this.course_title = ip.data.title;
-        this.lastUpdated = ip.data.updated_at;
-        this.createdAt = ip.data.created_at;
-        this.offers = ip.data.offers;
+        this.student_name = ip.data.student_name;
+        this.student_id = ip.data.student_id;
+        this.objId = ip.data._id;
+        this.enrolled = ip.data.enrolled;
       } catch (e) {
-        // console.log(e);
-        // console.log("the requested dept is not exists");
-        // console.log("redirect to home");
         this.$buefy.toast.open({
-          message: "The Requested Department is not exist",
+          message: "The Requested Student is not exist",
           type: "is-warning",
           position: "is-bottom"
         });
         this.$router.push({
-          path: "/dept/" + this.$route.params["id"]
+          path: "/student/" + this.$route.params["id"]
         });
       }
     },
 
     async fetchOffer() {
-      let ip = await this.$axios.$get(
-        "/api/v1/l/course/" + this.$route.params["course_id"] + "/offer"
-      );
-      console.log(ip);
+      try {
+        let ip = await this.$axios.$get(
+          `/api/v1/l/course/_/offer?available_places={"gt":0}`
+        );
+        this.OfferOpt = ip.data;
+        console.log(ip);
+      } catch (e) {
+        this.$buefy.toast.open({
+          message: "The Offer List fetching error",
+          type: "is-warning",
+          position: "is-bottom"
+        });
+      }
     },
 
     toggle(row) {
       this.createBlock_isopen = false;
       this.tmpRow = cdw(row);
+      this.tmpRow["enroll_date"] = moment(this.tmpRow["enroll_date"]).toDate()
       this.defaultOpenedDetails.pop();
       this.$refs.table.toggleDetails(row);
     },
 
-    async saveOffer() {
+    async saveEnroll() {
       console.log(this.tmpRow);
       try {
         let ip = await this.$axios.$post(
-          "/api/v1/u/course/" +
-            this.course_obj_id +
-            "/offer/" +
+          "/api/v1/u/student/" +
+            this.objId +
+            "/enrolled/" +
             this.tmpRow._id,
           {
-            _id: String(this.tmpRow._id),
             year: Number(this.tmpRow.year),
-            available_places: Number(this.tmpRow.available_places),
-            class_size: Number(this.tmpRow.class_size)
+            enroll_date: String(moment(this.tmpRow.enroll_date).format("YYYY-MM-DDTHH:mm:ssZ")),
+            course_id: String(this.tmpRow.course_id)
           }
         );
         console.log(ip);
@@ -235,26 +248,29 @@ export default {
           type: "is-danger"
         });
       } finally {
-        this.fetchCourse();
+        this.fetchStudent();
       }
     },
 
     warn(row) {
+      console.log(row);
       this.$buefy.dialog.confirm({
         title: "Deleting Offer",
         message:
-          "Are you sure you want to <b>delete</b> this Offer? This action cannot be undone.",
-        confirmText: "Delete Offer",
+          "Are you sure you want to <b>delete</b> this Enroll Record? This action cannot be undone.",
+        confirmText: "Delete Enroll Record",
         type: "is-danger",
         hasIcon: true,
-        onConfirm: () =>this.deleteOffer(row)
+        onConfirm:()=> this.deleteEnroll(row),
       });
     },
-    async deleteOffer(row) {
+    async deleteEnroll(row) {
       try {
         let ip = await this.$axios.$post(
-          "/api/v1/d/course/" + this.course_obj_id + "/offer/" + row._id,
-          { _id: String(row._id) }
+          "/api/v1/d/student/" + this.objId + "/enrolled/" + row._id,
+          {
+            _id: String(row._id)
+          }
         );
         this.$buefy.toast.open({
           duration: 5000,
@@ -271,35 +287,28 @@ export default {
           type: "is-danger"
         });
       } finally {
-        this.fetchCourse();
+        this.fetchStudent();
       }
     },
     // Create block
     createReady() {
-      let lastOffer = this.offers 
-        ? this.offers.sort((a, b) => {
+      let lastOffer = this.offers
+        ? this.offer.sort((a, b) => {
             return b.year - a.year;
           })
         : [];
-      let dt = new Date();
-      this.tmpRow = {
-        year: dt.getFullYear(),
-        class_size: this.offers ? lastOffer[0].class_size : 40,
-        available_places: this.offers ? lastOffer[0].class_size : 40
-      };
-      console.log(dt.getFullYear());
       this.defaultOpenedDetails.pop();
     },
-    async createOffer() {
-      console.log(this.tmpRow);
+    async createEnroll() {
       let ytmpRow = {
-        year: Number(this.tmpRow.year),
-        class_size: Number(this.tmpRow.class_size),
-        available_places: Number(this.tmpRow.available_places)
+        year: Number(this.co_year),
+        course_id: String(this.co_course_id),
+        enroll_date: String(moment(this.co_date).format("YYYY-MM-DDTHH:mm:ssZ"))
       };
+      console.log(ytmpRow)
       try {
         let ip = await this.$axios.$post(
-          "/api/v1/c/course/" + this.course_obj_id + "/offer",
+          "/api/v1/c/student/" + this.objId + "/enrolled",
           ytmpRow
         );
         this.$buefy.toast.open({
@@ -315,7 +324,7 @@ export default {
           position: "is-bottom"
         });
       } finally {
-        this.fetchCourse();
+        this.fetchStudent();
       }
     },
     cancelCreate() {
@@ -323,8 +332,8 @@ export default {
     }
   },
   beforeMount() {
-    this.fetchDept();
-    this.fetchCourse();
+    this.fetchStudent();
+    this.fetchOffer();
   }
 };
 </script>

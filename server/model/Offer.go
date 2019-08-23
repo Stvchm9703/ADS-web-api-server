@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	oid "github.com/coolbed/mgo-oid"
@@ -106,9 +107,15 @@ func FetchAllOffer(param interface{}, ps *PageMeta) ([]*CourseOfferMod, *PageMet
 func GetOffer(courseId string, id string) (*OfferMod, error) {
 	if DBConn != nil {
 		var result *OfferMod
-		err := DBConn.C(dept_mod_name).Find(bson.M{
-			"courses._id":        bson.ObjectIdHex(courseId),
-			"courses.offers._id": bson.ObjectIdHex(id),
+		err := DBConn.C(dept_mod_name).Pipe([]bson.M{
+			bson.M{"$match": bson.M{
+				"courses._id":        bson.ObjectIdHex(courseId),
+				"courses.offers._id": bson.ObjectIdHex(id),
+			}},
+			bson.M{"$unwind": "$courses"},
+			bson.M{"$unwind": "$courses.offers"},
+			bson.M{"$replaceRoot": bson.M{"newRoot": "$courses.offers"}},
+			bson.M{"$match": bson.M{"_id": bson.ObjectIdHex(id)}},
 		}).One(&result)
 		if err != nil {
 			fmt.Println(err)
@@ -132,15 +139,8 @@ func CreateOffer(courseId string, cp *OfferMod) (*OfferMod, error) {
 		}
 		cp.CreatedAt = &tnow
 		cp.UpdatedAt = &tnow
-		// err := DBConn.C(dept_mod_name).Update(bson.M{
-		// 	"courses._id": bson.ObjectIdHex(courseId),
-		// }, bson.M{
-		// 	"$push": bson.M{
-		// 		"courses.$.offers": &cp,
-		// 	},
-		// })
 
-		resultCursor := MgoCursorRes{}
+		resultCursor := bson.M{}
 		err := DBConn.Run(bson.M{
 			"update": dept_mod_name,
 			"updates": []bson.M{bson.M{
@@ -160,7 +160,7 @@ func CreateOffer(courseId string, cp *OfferMod) (*OfferMod, error) {
 			fmt.Println(err.Error())
 			return nil, err
 		}
-		return GetOffer(courseId, cp.ID.Hex())
+		return cp, nil
 	}
 	_, err := NotConn()
 	return nil, err
@@ -168,49 +168,58 @@ func CreateOffer(courseId string, cp *OfferMod) (*OfferMod, error) {
 
 // UpdateOffer : Update a Offer Object
 func UpdateOffer(courseId string, Old *OfferMod, New *OfferMod) (*OfferMod, error) {
+
+	ojson, _ := json.Marshal(Old)
+	// njson, _ := json.Marshal(New)
+	fmt.Println("Old", string(ojson))
+
 	if DBConn != nil {
 		tnow := time.Now()
 		New.UpdatedAt = &tnow
 		if New.CreatedAt != Old.CreatedAt {
 			New.CreatedAt = Old.CreatedAt
 		}
+		New.ID = Old.ID
+		njson, _ := json.Marshal(New)
+		fmt.Println("New", string(njson))
+		updateCDM := bson.M{
+			"q": bson.M{
+				"courses._id":        bson.ObjectIdHex(courseId),
+				"courses.offers._id": Old.ID,
+			},
+			"u": bson.M{
+				"$set": bson.M{"courses.$[ele].offers.$[elem]": New},
+			},
+			"arrayFilters": []bson.M{
+				bson.M{"ele._id": bson.M{"$eq": bson.ObjectIdHex(courseId)}},
+				bson.M{"elem._id": bson.M{"$eq": Old.ID}},
+			},
+		}
+		var result *OfferMod
 
-		temp, _ := bson.Marshal(New)
-		upNew := bson.M{}
-		bson.Unmarshal(temp, upNew)
-		// _, err := DBConn.C(dept_mod_name).Find(bson.M{
-		// 	"courses._id":        bson.ObjectIdHex(courseId),
-		// 	"courses.offers._id": Old.ID,
-		// }).Apply(
-		// 	mgo.Change{
-		// 		Update:    bson.M{"$set": upNew},
-		// 		ReturnNew: true,
-		// 	},
-		// 	&Returned,
-		// )
-
-		resultCursor := MgoCursorRes{}
+		resultCursor := bson.M{}
 		err := DBConn.Run(bson.M{
-			"update": dept_mod_name,
-			"updates": []bson.M{bson.M{
-				"q": bson.M{
-					"courses._id":        bson.ObjectIdHex(courseId),
-					"courses.offers._id": Old.ID,
-				},
-				"u": bson.M{"$set": bson.M{
-					"courses.$[ele].offers.$[elem]": upNew,
-				}},
-				"arrayFilters": []bson.M{
-					bson.M{"ele._id": bson.M{"$eq": bson.ObjectIdHex(courseId)}},
-					bson.M{"elem._id": bson.M{"$eq": Old.ID}},
-				},
-			}},
+			"update":  dept_mod_name,
+			"updates": []bson.M{updateCDM},
 		}, &resultCursor)
+		fmt.Println("resultCursor:", resultCursor)
 		if err != nil {
+			fmt.Println("update err", err)
 			return nil, err
 		}
 
-		return GetOffer(courseId, Old.ID.Hex())
+		err = DBConn.C(dept_mod_name).Pipe([]bson.M{
+			bson.M{"$match": bson.M{
+				"courses._id":        bson.ObjectIdHex(courseId),
+				"courses.offers._id": Old.ID,
+			}},
+			bson.M{"$unwind": "$courses"},
+			bson.M{"$unwind": "$courses.offers"},
+			bson.M{"$replaceRoot": bson.M{"newRoot": "$courses.offers"}},
+			bson.M{"$match": bson.M{"_id": Old.ID}},
+		}).One(&result)
+		fmt.Println(result)
+		return result, nil
 	}
 	_, err := NotConn()
 	return nil, err
@@ -219,33 +228,32 @@ func UpdateOffer(courseId string, Old *OfferMod, New *OfferMod) (*OfferMod, erro
 // DeleteOffer : Delete a Offer
 func DeleteOffer(courseId string, cpid string) (bool, error) {
 	if DBConn != nil {
-		// err := DBConn.C(dept_mod_name).Update(&bson.M{
-		// 	"courses._id": bson.ObjectIdHex(courseId),
-		// }, bson.M{
-		// 	"$pull": bson.M{
-		// 		"courses.$.offers._id": bson.ObjectIdHex(cpid),
-		// 	},
-		// })
-		// if err != nil {
-		// 	fmt.Println("Got a real error:", err.Error())
-		// 	return false, err
-		// }
-		resultCursor := MgoCursorRes{}
-		_ = DBConn.Run(bson.M{
-			"update": dept_mod_name,
-			"updates": []bson.M{bson.M{
+
+		resultCursor := bson.M{}
+		cmdd := []bson.M{
+			bson.M{
 				"q": bson.M{
 					"courses._id":        bson.ObjectIdHex(courseId),
 					"courses.offers._id": bson.ObjectIdHex(cpid),
 				},
 				"u": bson.M{"$pull": bson.M{
-					"courses.$[ele].offers._id": bson.ObjectIdHex(cpid),
+					"courses.$[ele].offers": bson.M{"_id": bson.ObjectIdHex(cpid)},
 				}},
 				"arrayFilters": []bson.M{
 					bson.M{"ele._id": bson.M{"$eq": bson.ObjectIdHex(courseId)}},
 				},
-			}},
+			},
+		}
+
+		err := DBConn.Run(bson.D{
+			{"update", dept_mod_name},
+			{"updates", &cmdd},
 		}, &resultCursor)
+		fmt.Println(resultCursor)
+		if err != nil || resultCursor["ok"] == 0 {
+			log.Println("err in DeleteOffer", err, " resultCursor", resultCursor)
+			return false, err
+		}
 		return true, nil
 	}
 	_, err := NotConn()

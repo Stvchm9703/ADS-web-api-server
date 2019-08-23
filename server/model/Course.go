@@ -152,32 +152,14 @@ func UpdateCourse(dept_id string, Old *CourseMod, New *CourseMod) (*CourseMod, e
 		if New.CreatedAt != Old.CreatedAt {
 			New.CreatedAt = Old.CreatedAt
 		}
-
 		temp, _ := bson.Marshal(New)
 		upNew := bson.M{}
 		bson.Unmarshal(temp, upNew)
 		delete(upNew, "Offers")
+		upNew["_id"] = Old.ID
 		fmt.Println("update upNew", upNew)
-		// Returned := CourseMod{}
-		// _, err := DBConn.C(dept_mod_name).Find(bson.M{
-		// 	"_id":        bson.ObjectIdHex(dept_id),
-		// 	"course._id": Old.ID,
-		// }).Apply(
-		// 	mgo.Change{
-		// 		Update: bson.M{
-		// 			"$set": bson.M{
-		// 				"$$": upNew,
-		// 			},
-		// 		},
-		// 		ReturnNew: true,
-		// 	},
-		// 	&Returned,
-		// )
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// return &Returned, nil
-		resultCursor := MgoCursorRes{}
+
+		resultCursor := bson.M{}
 		err := DBConn.Run(bson.M{
 			"update": dept_mod_name,
 			"updates": []bson.M{bson.M{
@@ -197,7 +179,17 @@ func UpdateCourse(dept_id string, Old *CourseMod, New *CourseMod) (*CourseMod, e
 			return nil, err
 		}
 
-		return GetDeptCourse(dept_id, Old.ID.Hex())
+		var result *DepartmentMod
+		err = DBConn.C(dept_mod_name).Find(bson.M{
+			"_id":         bson.ObjectIdHex(dept_id),
+			"courses._id": Old.ID,
+		}).One(&result)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+		return result.Courses[0], nil
+		// return GetDeptCourse(dept_id, Old.ID.Hex())
 	}
 	_, err := NotConn()
 	return nil, err
@@ -211,7 +203,7 @@ func DeleteCourse(dept_id string, cpid string) (bool, error) {
 			"_id": bson.ObjectIdHex(dept_id),
 		}, bson.M{
 			"$pull": bson.M{
-				"courses._id": bson.ObjectIdHex(cpid),
+				"courses": bson.M{"_id": bson.ObjectIdHex(cpid)},
 			},
 		})
 

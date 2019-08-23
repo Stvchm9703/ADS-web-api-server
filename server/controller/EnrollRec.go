@@ -115,11 +115,13 @@ func UpdateEnroll(c *gin.Context) {
 	} else {
 		if c.BindJSON(&ftem) == nil {
 			k1, errr := m.GetEnroll(id, e_id)
+			fmt.Println("k1", k1)
 			if errr != nil {
 				RespondJSONWithError(c, 500, errr)
 			} else {
 				if k1 != nil {
 					newO, err := json.Marshal(ftem)
+					fmt.Println("newO", string(newO))
 					if err = json.Unmarshal(newO, &tem); err == nil {
 						k, err := m.UpdateEnroll(id, k1, &tem)
 						if err != nil {

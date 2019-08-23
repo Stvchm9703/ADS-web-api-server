@@ -2,7 +2,7 @@
 div
   section.hero.is-info
     .hero-body
-      .container.has-text-centered
+      .container.has-text-left
         p.title {{deptName}}
         p.subtitle {{deptId}}
     .hero-foot
@@ -16,6 +16,8 @@ div
 
 
   section.section
+    .columns.is-multiline      
+      nuxt-link.button.is-primary(:to='"/create/course/" + objId ') Create Course
     .columns.is-multiline
       card(
         v-for='c in courseList'
@@ -29,6 +31,7 @@ div
           :offers='c.offers'
           :createdAt='c.created_at'
           :lastUpdated='c.updated_at'
+          @onReload="fetchDept()"
         )
 </template>
 
