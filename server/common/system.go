@@ -9,7 +9,10 @@ const (
 	QueryDefaultPageLimit = 500
 	DBDefaultConn         = "root:@tcp(127.0.0.1:3306)/wildbase"
 )
-
+var (
+	ConfigInRun *ConfigTemp
+	PathInRun   string
+)
 var ServerConf = struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration

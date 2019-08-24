@@ -15,8 +15,7 @@ export default {
   },
 
   loading: { color: '#fff' },
-  css: [
-  ],
+
   plugins: [
     '~/plugins/axios'
   ],
@@ -27,20 +26,50 @@ export default {
   modules: [
     'nuxt-buefy',
     '@nuxtjs/axios',
-    '@nuxtjs/pwa'
+    '@nuxtjs/pwa',
+    '@nuxtjs/markdownit'
   ],
-  axios: {
-    proxy : true,
+  markdownit: {
+    preset: 'commonmark',
+    linkify: true,
+    breaks: false,
+    use: [
+      'markdown-it-div',
+      'markdown-it-attrs',
+      'markdown-it-multimd-table',
+      'markdown-it-task-lists',
+      // 'markdown-it-github-headings',
+      'markdown-it-github-preamble',
+      'markdown-it-table-of-contents',
+
+    ],
+    injected: true
   },
-   proxy: {
-       '/api': {
-           target: 'http://0.0.0.0:8080',
-           pathRewrite: {
-               '^/api': '/api'
-           }
-       }
-   },
-  generate: { 
-    dir : 'dist',
-  }
+  axios: {
+    proxy: true,
+  },
+  proxy: {
+    '/api': {
+      target: 'http://0.0.0.0:8080',
+
+    },
+    '/md': {
+      target: 'http://0.0.0.0:8080'
+    }
+  },
+  generate: {
+    dir: 'dist',
+  },
+  build: {
+    publicPath: '/static/',
+    indicator: false,
+    extend(config, ctx) {
+      config.module.rules.push({
+        test: /\.md$/,
+        use: ['raw-loader']
+      });
+    },
+    extractCSS: true,
+    vendor: ['vuex', 'axios']
+  },
 }

@@ -31,7 +31,7 @@ var runCmd = &cobra.Command{
 		if len(args) > 0 {
 			fmt.Println(args)
 		}
-
+		callPath, _ := os.Getwd()
 		fmt.Println(runCMDInput.cfPath)
 
 		var configPoint *common.ConfigTemp
@@ -44,7 +44,7 @@ var runCmd = &cobra.Command{
 		log.Println(configPoint)
 		log.Println(runCMDInput.mode)
 		if err == nil {
-			Wb.ServerMainProcess(configPoint, runCMDInput.mode)
+			Wb.ServerMainProcess(configPoint, callPath, runCMDInput.mode)
 		} else {
 			panic(err)
 		}
@@ -53,6 +53,7 @@ var runCmd = &cobra.Command{
 
 func init() {
 	callPath, _ := os.Getwd()
+
 	runCmd.Flags().StringVarP(
 		&runCMDInput.cfPath,
 		"conf", "c",

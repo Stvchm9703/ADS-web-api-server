@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
 	conf "webserver/server/common"
 
 	c "webserver/server/controller"
@@ -21,10 +22,23 @@ func DummyMiddleware(c *gin.Context) {
 
 // RouterSetting : api routing setting
 func RouterSetting(config *conf.ConfigTemp) http.Handler {
-	router := gin.New()
+	router := gin.Default()
 	router.Use(gin.Recovery())
-	// router.Use(c.RecoverMW())
-	// router.Use(DummyMiddleware)
+
+	router.Use(c.MdLoader())
+	// router.Use(c.HtmlLoader())
+	router.Static("/static", path.Join(conf.PathInRun, "server", "static"))
+	router.StaticFile("/create/dept", path.Join(conf.PathInRun, "server", "template", "create", "dept", "index.html"))
+	router.StaticFile("/create/student", path.Join(conf.PathInRun, "server", "template", "create", "student", "index.html"))
+	router.StaticFile("/dept", path.Join(conf.PathInRun, "server", "template", "dept", "index.html"))
+	router.StaticFile("/doc", path.Join(conf.PathInRun, "server", "template", "doc", "index.html"))
+	router.StaticFile("/student", path.Join(conf.PathInRun, "server", "template", "student", "index.html"))
+	router.StaticFile("/", path.Join(conf.PathInRun, "server", "template", "index.html"))
+	router.StaticFile("/200.html", path.Join(conf.PathInRun, "server", "template", "200.html"))
+	router.StaticFile("/favicon.ico", path.Join(conf.PathInRun, "server", "template", "favicon.ico"))
+	router.StaticFile("/icon.png", path.Join(conf.PathInRun, "server", "template", "icon.png"))
+	router.StaticFile("/sw.js", path.Join(conf.PathInRun, "server", "template", "sw.js"))
+
 	v1 := router.Group("/api/v1")
 	{
 		// department

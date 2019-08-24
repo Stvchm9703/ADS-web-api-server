@@ -1,0 +1,62 @@
+[
+ {
+  "_id": "5d5d822e0838640430d2fb77",
+  "courses": [
+   {
+    "_id": "5d5eb78608386435cc05f519",
+    "course_id": "scope_23010",
+    "created_at": "2019-08-22T23:40:54.734+08:00",
+    "level": 4,
+    "offers": [
+     {
+      "_id": "5d5ef1fa08386444046cc5bf",
+      "available_places": 38,
+      "class_size": 40,
+      "created_at": "2019-08-23T03:50:18.046+08:00",
+      "updated_at": "2019-08-23T03:50:18.046+08:00",
+      "year": 2013
+     },
+     {
+      "_id": "5d5f9b6a0838643650532103",
+      "available_places": 36,
+      "class_size": 40,
+      "created_at": "2019-08-23T15:53:14.315+08:00",
+      "updated_at": "2019-08-23T15:53:14.315+08:00",
+      "year": 2019
+     },
+     {
+      "_id": "5d5febb4083864458c9dbff1",
+      "available_places": 29,
+      "class_size": 40,
+      "created_at": "2019-08-23T21:35:48.421+08:00",
+      "updated_at": "2019-08-24T08:05:09.572+08:00",
+      "year": 2020
+     }
+    ],
+    "title": "advanced developer rule",
+    "updated_at": "2019-08-23T00:07:42.761+08:00"
+   }
+  ],
+  "created_at": "2019-08-22T01:41:02.773+08:00",
+  "dept_id": "CS",
+  "dept_name": "Computer Science",
+  "location": "Blue Zone",
+  "updated_at": "2019-08-22T23:06:24.203+08:00"
+ },
+ {
+  "_id": "5d5d82480838640430d2fb78",
+  "created_at": "2019-08-22T01:41:28.858+08:00",
+  "dept_id": "IS",
+  "dept_name": "Information System",
+  "location": "Red Zone",
+  "updated_at": "2019-08-22T01:41:28.858+08:00"
+ },
+ {
+  "_id": "5d5d82dc0838640430d2fb79",
+  "created_at": "2019-08-22T01:43:56.144+08:00",
+  "dept_id": "BIT",
+  "dept_name": "business in technology",
+  "location": "Grey Zone",
+  "updated_at": "2019-08-22T01:43:56.144+08:00"
+ }
+]

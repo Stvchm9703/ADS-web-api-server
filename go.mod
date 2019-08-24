@@ -8,8 +8,10 @@ require (
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/coolbed/mgo-oid v0.0.0-20170627135709-d2b570933ac9
 	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/gin-contrib/static v0.0.0-20190511124741-c1cdf9c9ec7b
+	github.com/gin-gonic/contrib v0.0.0-20190526021735-7fb7810ed2a0 // indirect
 	github.com/gin-gonic/gin v1.4.0
-	github.com/go-bongo/bongo v0.10.4
+	github.com/go-bongo/bongo v0.10.4 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/manifoldco/promptui v0.3.2

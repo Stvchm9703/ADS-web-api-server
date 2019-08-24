@@ -10,27 +10,29 @@ import (
 	// "webserver"
 	conf "webserver/server/common"
 	"webserver/server/model"
-
+	
 	"github.com/gin-gonic/gin"
-	"github.com/go-bongo/bongo"
 	"golang.org/x/sync/errgroup"
 )
 
 var (
-	g  errgroup.Group
-	DB *bongo.Connection = nil
+	g errgroup.Group
 )
 
-func ServerMainProcess(configPara *conf.ConfigTemp, mode string) {
+func ServerMainProcess(configPara *conf.ConfigTemp, path string, mode string) {
 	// NOTE: add Config reading
 	log.Println(configPara)
 	DB, err := model.ConnectDB(configPara)
 	fmt.Println()
 	log.Println("Svr main procx")
-	fmt.Print(DB)
+	fmt.Println(DB)
+	fmt.Println()
 	if err != nil {
 		log.Println(err)
 	}
+
+	conf.ConfigInRun = configPara
+	conf.PathInRun = path
 
 	if mode == "prod" {
 		gin.SetMode(gin.ReleaseMode)

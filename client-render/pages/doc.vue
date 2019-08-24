@@ -8,14 +8,31 @@ export default {
   data: () => ({
     hello: "#Hello World"
   }),
+  computed: {
+    fhash(){
+      return this.$route.hash
+    }
+  },
+  watch: {
+    fhash(){
+      this.fetchPost()
+    }
+  },
   methods: {
     async fetchPost() {
       try {
-        let ip = await this.$axios.$get("/md/info.md");
+        let filename = "info"
+        if (this.$route.hash){
+          filename = this.$route.hash.replace("#","")
+        }
+        let ip = await this.$axios.$get("/md/" + filename + ".md");
         console.log(ip);
         this.hello = ip
       } catch (e) {
         console.warn(e);
+        this.$router.push({
+          path:"/"
+        })
       }
     }
   },

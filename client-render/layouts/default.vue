@@ -13,10 +13,22 @@ div
       p.menu-label.is-hidden-touch
         | General
       ul.menu-list
+        li
+          nuxt-link(to='/' exact-active-class='is-active')
+            b-icon(icon='home')
+            | Home
+      p.menu-label.is-hidden-touch
+        | Demo Work
+      ul.menu-list
         li(v-for='(item, key) of items' :key='key')
           nuxt-link(:to='item.to' exact-active-class='is-active')
             b-icon(:icon='item.icon')
             | {{ item.title }}
+      p.menu-label.is-hidden-touch
+        | Document for this Project
+      ul.menu-list
+      
+
     .container.column.is-10
       nuxt
 
@@ -24,25 +36,24 @@ div
 
 <script>
 export default {
-  data () {
-    return {
-      items: [{
-        title: 'Home',
-        icon: 'home',
+  data: () => ({
+    items: [
+      {
+        title: "Department",
+        icon: "office-building",
         to: {
-          name: 'index'
+          name: "dept"
         }
       },
       {
-        title: 'Inspire',
-        icon: 'lightbulb',
+        title: "Student",
+        icon: "account",
         to: {
-          name: 'inspire'
+          name: "student"
         }
       }
-      ]
-    }
-  }
-}
-
+    ],
+    docList: []
+  })
+};
 </script>
