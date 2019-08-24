@@ -19,6 +19,7 @@ export default {
   plugins: [
     '~/plugins/axios'
   ],
+  css:['~/assets/sup.css','~/assets/github.css'],
   devModules: [
     // Doc: https://github.com/nuxt-community/eslint-module
     // '@nuxtjs/eslint-module'
@@ -30,7 +31,7 @@ export default {
     '@nuxtjs/markdownit'
   ],
   markdownit: {
-    preset: 'commonmark',
+    preset: 'highlightjs',
     linkify: true,
     breaks: false,
     use: [
@@ -39,6 +40,7 @@ export default {
       'markdown-it-multimd-table',
       'markdown-it-task-lists',
       // 'markdown-it-github-headings',
+      'markdown-it-highlightjs',
       'markdown-it-github-preamble',
       'markdown-it-table-of-contents',
 

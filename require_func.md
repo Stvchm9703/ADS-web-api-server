@@ -66,7 +66,8 @@ let Student = {
     StudentName: "Chan Tai Man",
     DOB: Date,
     Enrolled: [{
-        CourseOfferID: "<$ref_id>",
+        CourseID : String,
+        Year : String,
         EnrolDate: Date
     }] // Enrolled Obj
 }
@@ -77,32 +78,15 @@ Moreover, your system should be able to answer the following queries:
 - a) Find the titles of courses offered by the CS department in 2016.
 ``` js
 db.getCollection("dept").find({
-    DeptID : {
-        $eq : "CS",
-    },
-    "Courses.Offers.Year" : {
-        $eq : 2016
-    }
-}, {
-    "Courses.title" : 1,
-    "_id" : 0
-})
+    DeptID : { $eq : "CS", },
+    "Courses.Offers.Year" : { $eq : 2016 }
+}, { "Courses.title" : 1, "_id" : 0 })
 db.getCollection("dept").aggregate([
     {
-        $find:{
-            DeptID : {
-                $eq : "CS",
-            },
-            "Courses.Offers.Year" : {
-                $eq : 2016
-            }
-        }
+        $find:{ DeptID : { $eq : "CS", }, "Courses.Offers.Year" : { $eq : 2016 } }
     }, 
     {
-        $project : {
-            "Courses.title" : 1,
-            "_id" : 0
-        }
+        $project : { "Courses.title" : 1, "_id" : 0 }
     }
 ])
 ```
@@ -110,21 +94,8 @@ db.getCollection("dept").aggregate([
  
 ``` js
 db.getCollection("dept").aggregate([
-    {
-        $find : { 
-            DeptID : {
-                $in : ["CS", "IS"],
-            },
-            "Courses.Offers.Year" : {
-                $eq : 2016
-            }
-        }
-    }, {
-        $project : {
-            "_id" : 0,
-            "Courses" : 1
-        }
-    }
+    { $find : { DeptID : { $in : ["CS", "IS"], }, "Courses.Offers.Year" : { $eq : 2016 } } }, 
+    { $project : { "_id" : 0, "Courses" : 1 } }
 ])
 ```
 
@@ -139,13 +110,8 @@ db.getCollection("dept").find({}, {
 })
 
 db.getCollection("dept").aggregate([
-    $project : {
-        "Courses" : 1,
-        "_id" : 0
-    },
-    $sort:{
-        "Courses.Offers.AvailablePlaces" : 1
-    }
+    {$project : { "Courses" : 1, "_id" : 0 }},
+    {$sort:{ "Courses.Offers.AvailablePlaces" : 1 }}
 ])
 
 ```

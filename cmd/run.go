@@ -64,7 +64,7 @@ func init() {
 		&runCMDInput.mode,
 		"mode", "m",
 		"prod",
-		"server running mode [prod / dev]")
+		"server running mode [prod / dev / test]")
 
 	rootCmd.AddCommand(runCmd)
 }

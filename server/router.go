@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"path"
@@ -15,14 +14,14 @@ import (
 
 var router errgroup.Group
 
-func DummyMiddleware(c *gin.Context) {
-	fmt.Println(c)
-	c.Next()
-}
+// func DummyMiddleware(c *gin.Context) {
+// 	fmt.Println(c)
+// 	c.Next()
+// }
 
 // RouterSetting : api routing setting
 func RouterSetting(config *conf.ConfigTemp) http.Handler {
-	router := gin.Default()
+	router := gin.New()
 	router.Use(gin.Recovery())
 
 	router.Use(c.MdLoader())

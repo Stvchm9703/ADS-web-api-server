@@ -76,7 +76,7 @@ func NotConn() (*struct{}, error) {
 	}
 }
 
-func CreateDBTable(config *common.ConfigTemp) (bool, error) {
+func CreateDBTable(config *common.ConfigTemp) (*[]bson.M, bool, error) {
 	if DBConn != nil {
 		var structlist = []interface{}{
 			DepartmentMod{},
@@ -157,7 +157,7 @@ func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 					failCount++
 					time.Sleep(750 * time.Millisecond)
 					if failCount > 10 {
-						return false, common.ErrorMessage{
+						return &finPush, false, common.ErrorMessage{
 							When: time.Now(),
 							What: "Failure : " + string(nameJ),
 						}
@@ -165,9 +165,9 @@ func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 					}
 				}
 			}
-
+			return &finPush, true, nil
 		} else {
-			return false, common.ErrorMessage{
+			return &finPush, false, common.ErrorMessage{
 				When: time.Now(),
 				What: "the DB is Already Declare",
 			}
@@ -175,7 +175,7 @@ func CreateDBTable(config *common.ConfigTemp) (bool, error) {
 
 	}
 	_, err := NotConn()
-	return false, err
+	return nil, false, err
 }
 
 func createBMap(v interface{}) bson.M {

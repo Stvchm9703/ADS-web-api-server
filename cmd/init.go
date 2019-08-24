@@ -21,6 +21,8 @@ var initCMDInput = struct {
 	rootPath     string
 	skipFol      string
 	refDataPath  string
+	schemaPath   string
+	isExport     bool
 }{}
 
 var initCMD = &cobra.Command{
@@ -43,7 +45,13 @@ var initCMD = &cobra.Command{
 		log.Println(configPoint)
 		log.Println(initCMDInput.mode)
 		if err == nil {
-			Wb.ServerInitProc(configPoint)
+
+			if initCMDInput.isExport {
+				Wb.ServerInitProc(configPoint, &initCMDInput.schemaPath)
+			} else {
+				Wb.ServerInitProc(configPoint, nil)
+			}
+
 		} else {
 			panic(err)
 		}
@@ -56,6 +64,17 @@ func init() {
 		&initCMDInput.cfPath,
 		"conf", "c",
 		filepath.Join(callPath, "config.toml"),
+		"start server with specific config file")
+
+	initCMD.Flags().BoolVarP(
+		&initCMDInput.isExport,
+		"exportSchema", "x",
+		false,
+		"export the createCollecction validator.$jsonSchema build json")
+	initCMD.Flags().StringVarP(
+		&initCMDInput.schemaPath,
+		"schema", "m",
+		filepath.Join(callPath, "doc", "log", "create_schema.json"),
 		"start server with specific config file")
 	rootCmd.AddCommand(initCMD)
 }
