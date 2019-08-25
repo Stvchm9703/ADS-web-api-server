@@ -14,39 +14,39 @@ import (
 
 type VStudentEnrolledMod struct {
 	// EnrollMod
-	ID         *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty" `
+	ID *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty" `
 	// StudentMod
-	StudentID  *string        `bson:"student_id,omitempty" json:"student_id,omitempty"`
-	StuName *string `bson:"student_name,omitempty" json:"student_name,omitempty"`
-	EnrollDate *time.Time     `bson:"enroll_date,omitempty" json:"enroll_date,omitempty"`
+	StudentID  *string    `bson:"student_id,omitempty" json:"student_id,omitempty"`
+	StuName    *string    `bson:"student_name,omitempty" json:"student_name,omitempty"`
+	EnrollDate *time.Time `bson:"enroll_date,omitempty" json:"enroll_date,omitempty"`
 	// VCourseOfferMod
-	CourseOffer *VCourseOfferMod        `bson:"course_offer,omitempty" json:"course_offer,omit"`
+	CourseOffer *VCourseOfferMod `bson:"course_offer,omitempty" json:"course_offer,omit"`
 }
 
 var v_stud_enroll_name = "VStudentEnrolled"
 var v_stud_enroll_basemod = "student"
 var v_stud_enroll_schema = []bson.M{
-	bson.M{"$unwind" : "$enrolled"},
-    bson.M{
-        "$project": bson.M{
-            "_id" : "$enrolled._id",
-            "student_id" : 1,
-            "student_name" : 1,
-            "enroll_date" : "$enrolled.enroll_date",
-            "course_offer_id": bson.M{
-                "$concat": []interface{}{"$enrolled.course_id", "_", bson.M{ "$toString": "$enrolled.year" }},
-            },
-        },
-    },
-    bson.M{
-        "$lookup" : bson.M{
-            "from": "VCourseOffer",
-            "localField": "course_offer_id",
-            "foreignField" : "course_offer_id",
-            "as": "course_offer",
-        },
+	bson.M{"$unwind": "$enrolled"},
+	bson.M{
+		"$project": bson.M{
+			"_id":          "$enrolled._id",
+			"student_id":   1,
+			"student_name": 1,
+			"enroll_date":  "$enrolled.enroll_date",
+			"course_offer_id": bson.M{
+				"$concat": []interface{}{"$enrolled.course_id", "_", bson.M{"$toString": "$enrolled.year"}},
+			},
+		},
 	},
-	bson.M{"$unwind":"$course_offer"},
+	bson.M{
+		"$lookup": bson.M{
+			"from":         "VCourseOffer",
+			"localField":   "course_offer_id",
+			"foreignField": "course_offer_id",
+			"as":           "course_offer",
+		},
+	},
+	bson.M{"$unwind": "$course_offer"},
 }
 
 // FetchVStudentEnrolled : Get VStudentEnrolled Object list
@@ -61,10 +61,10 @@ func FetchVStudentEnrolled(param interface{}, ps *m.PageMeta) ([]*VStudentEnroll
 		}
 		// // fmt.Println("count:", count)
 		Q := m.DBConn.C(v_stud_enroll_name).Find(param)
-		if len( ps.SortAr ) > 0 {
+		if len(ps.Sort) > 0 {
 			Q = Q.Sort(ps.SortAr...)
 			nps.Sort, nps.SortAr = ps.Sort, ps.SortAr
-		} 
+		}
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit
@@ -148,14 +148,14 @@ I:
 		if tmp == v_stud_enroll_name {
 			return false, nil
 			break I
-		// } else {
-		// 	for j := 0; j < len(bsonCheckName); j++ {
-		// 		if bsonCheckName[j] == tmp {
-		// 			bsonCheckName = append(bsonCheckName[:j], bsonCheckName[j+1:]...)
+			// } else {
+			// 	for j := 0; j < len(bsonCheckName); j++ {
+			// 		if bsonCheckName[j] == tmp {
+			// 			bsonCheckName = append(bsonCheckName[:j], bsonCheckName[j+1:]...)
 
-		// 			continue I
-		// 		}
-		// 	}
+			// 			continue I
+			// 		}
+			// 	}
 		}
 	}
 	fmt.Println("bsonCheckName:", bsonCheckName, ", :num:", len(bsonCheckName))

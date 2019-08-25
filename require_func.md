@@ -2,38 +2,14 @@
 
 required
 ```js
-Departments (
-    DeptID, 
-    DeptName, 
-    Location
-);
+Departments ( DeptID, DeptName, Location );
+Courses ( CourseID, Title, Level );
 
-Courses (
-    CourseID, 
-    Title, 
-    Level
-);
+Offer( DeptID, CourseID, Year, ClassSize, AvailablePlaces );
 
-Offer(
-    DeptID, 
-    CourseID, 
-    Year, 
-    ClassSize, 
-    AvailablePlaces
-);
+Students ( StudentID, StuName, DOB );
 
-Students (
-    StudentID, 
-    StuName, 
-    DOB
-);
-
-Enrolled(
-    StudentID, 
-    Year, 
-    CourseID, 
-    EnrolDate
-);
+Enrolled( StudentID, Year, CourseID, EnrolDate );
 ```
 Consider the function requirement, and data dependance, to design the document \
 Plus, depend the API usage 
@@ -77,7 +53,7 @@ let Student = {
 Moreover, your system should be able to answer the following queries:
 - a) Find the titles of courses offered by the CS department in 2016.
 
-** add `search/sort` at `dept/_id/course`
+** add `search/sort` at `dept/_id/course` OK
 
 ``` js
 db.getCollection("dept").find({ DeptID : { $eq : "CS", }, "Courses.Offers.Year" : { $eq : 2016 } }, { "Courses.title" : 1, "_id" : 0 })

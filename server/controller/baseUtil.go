@@ -80,6 +80,7 @@ func BindSort(q string, lookup interface{}) (map[string]int , []string) {
 	if err := json.Unmarshal([]byte(q), &t); err != nil {
 		fmt.Println(err)
 		qary = strings.Split(q, ",")
+		para := ""
 		for i := 0; i < v.NumField(); i++ {
 			fi := typ.Field(i)
 			tg := strings.Split(fi.Tag.Get("json"), ",")[0]
@@ -87,16 +88,20 @@ func BindSort(q string, lookup interface{}) (map[string]int , []string) {
 				sortO := 0
 				if qary[1] == "desc"{
 					sortO = -1
+					para = "-" +tg
 				} else if qary[1] == "asc"{
 					sortO = 1
+					para = tg
 				}
 				if sortO != 0{
 					result[tg] = sortO
 				}
 			}
 		}
-		
+		return result, []string{para}
 	} else {
+		// json
+		fmt.Println("\t T:",t)
 		for i := 0; i < v.NumField(); i++ {
 			fi := typ.Field(i)
 			tg := strings.Split(fi.Tag.Get("json"), ",")[0]
@@ -112,8 +117,8 @@ func BindSort(q string, lookup interface{}) (map[string]int , []string) {
 				result[tg] = sortO
 			}
 		}
+		return result, qary
 	}
-	return result, qary
 }
 
 
