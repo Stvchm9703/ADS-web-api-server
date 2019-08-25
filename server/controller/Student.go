@@ -50,6 +50,7 @@ func GetStudentList(c *gin.Context) {
 	var PS m.PageMeta
 	PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
 	PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
+	PS.Sort, PS.SortAr = BindSort( c.Query("sort") , m.StudentMod{})
 	fmt.Println("query map", c.Request.URL.Query())
 	fmt.Println("PS", PS)
 	o := BindQuery(c.Request.URL.Query(), m.StudentMod{})

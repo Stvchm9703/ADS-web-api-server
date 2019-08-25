@@ -62,6 +62,7 @@ func CreateCourse(c *gin.Context) {
 
 func GetDeptCourseList(c *gin.Context) {
 	id, e := c.Params.Get("dept_id")
+	// var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
 	if !e {
 		RespondJSONWithError(c, 500, map[string]interface{}{
 			"err": "no param of deot_id",
@@ -70,6 +71,7 @@ func GetDeptCourseList(c *gin.Context) {
 		var PS m.PageMeta
 		PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
 		PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
+		PS.Sort, PS.SortAr = BindSort( c.Query("sort") , m.CourseMod{})
 		// search
 		o := BindQuery(c.Request.URL.Query(), m.CourseMod{})
 		if len(id) == 24 {

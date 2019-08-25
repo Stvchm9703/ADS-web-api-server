@@ -48,6 +48,7 @@ func FetchDeptCourse(dept_id string, param interface{}, ps *PageMeta) ([]*Course
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
+		
 		err1 := DBConn.C(dept_mod_name).Find(
 			bson.M{
 				"_id": bson.ObjectIdHex(dept_id),
@@ -75,16 +76,27 @@ func FetchAllCourse(param interface{}, ps *PageMeta) ([]CourseListM, *PageMeta, 
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		err1 := DBConn.C(dept_mod_name).Pipe(
-			[]bson.M{
+		qry := []bson.M{
 				bson.M{"$match": bson.M{
 					"courses": bson.M{
 						"$elemMatch": param,
 					},
 				}},
-				bson.M{"$unwind": "$courses"},
-			},
-		).All(&record)
+				bson.M{"$unwind": "$courses"},	
+			} 
+		if len(ps.Sort) > 0 {
+			qry = append(qry, bson.M{"$sort": ps.Sort})
+			nps.Sort = ps.Sort
+		}
+		if ps.PageLimit > 0 {
+			qry = append(qry, bson.M{"$sort": ps.PageLimit})
+			nps.PageLimit = ps.PageLimit
+		}
+		if ps.PageNum > 0 {
+			qry = append(qry, bson.M{"$skip" : (ps.PageNum-1) *ps.PageLimit})
+			nps.PageNum = ps.PageNum
+		}
+		err1 := DBConn.C(dept_mod_name).Pipe(qry).All(&record)
 		if err1 != nil {
 			fmt.Println(err1)
 			return nil, nil, err1

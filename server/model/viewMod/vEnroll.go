@@ -15,68 +15,44 @@ import (
 type VStudentEnrolledMod struct {
 	// EnrollMod
 	ID         *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty" `
-	StudentID  *string        `bson:"student_id,omitempty" json:"student_id,omitempty"`
-	Year       *int           `bson:"year,omitempty" json:"year,omitempty"`
-	EnrollDate *time.Time     `bson:"enroll_date,omitempty" json:"enroll_date,omitempty"`
-	CourseID   *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
-	CreatedAt  *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
-	UpdatedAt  *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 	// StudentMod
+	StudentID  *string        `bson:"student_id,omitempty" json:"student_id,omitempty"`
 	StuName *string `bson:"student_name,omitempty" json:"student_name,omitempty"`
+	EnrollDate *time.Time     `bson:"enroll_date,omitempty" json:"enroll_date,omitempty"`
 	// VCourseOfferMod
-	Title           *string `bson:"title,omitempty" json:"title,omitempty"`
-	Level           *int    `bson:"level,omitempty" json:"level,omitempty"`
-	ClassSize       *int    `bson:"class_size,omitempty" json:"class_size,omitempty"`
-	AvailablePlaces *int    `bson:"available_places,omitempty" json:"available_places,omitempty"`
-	DeptID          *string `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
-	DeptName        *string `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
-	Address         *string `bson:"address,omitempty" json:"address,omitempty"`
+	CourseOffer *VCourseOfferMod        `bson:"course_offer,omitempty" json:"course_offer,omit"`
 }
 
 var v_stud_enroll_name = "VStudentEnrolled"
-var v_stud_enroll_basemod = "Enroll"
+var v_stud_enroll_basemod = "student"
 var v_stud_enroll_schema = []bson.M{
-	bson.M{
-		"$lookup": bson.M{
-			"localField":   "student_id",
-			"from":         "Student",
-			"foreignField": "student_id",
-			"as":           "std",
-		},
+	bson.M{"$unwind" : "$enrolled"},
+    bson.M{
+        "$project": bson.M{
+            "_id" : "$enrolled._id",
+            "student_id" : 1,
+            "student_name" : 1,
+            "enroll_date" : "$enrolled.enroll_date",
+            "course_offer_id": bson.M{
+                "$concat": []interface{}{"$enrolled.course_id", "_", bson.M{ "$toString": "$enrolled.year" }},
+            },
+        },
+    },
+    bson.M{
+        "$lookup" : bson.M{
+            "from": "VCourseOffer",
+            "localField": "course_offer_id",
+            "foreignField" : "course_offer_id",
+            "as": "course_offer",
+        },
 	},
-	bson.M{
-		"$lookup": bson.M{
-			"localField":   "course_id",
-			"from":         "VCourseOffer",
-			"foreignField": "course_id",
-			"as":           "vcs",
-		},
-	},
-	bson.M{
-		"$project": bson.M{
-			"_id":              1,
-			"year":             1,
-			"student_id":       1,
-			"enroll_date":      1,
-			"course_id":        1,
-			"created_at":       1,
-			"updated_at":       1,
-			"student_name":     "std.student_name",
-			"title":            "vcs.title",
-			"level":            "vcs.level",
-			"class_size":       "vcs.class_size",
-			"available_places": "vcs.available_places",
-			"dept_id":          "vcs.dept_id",
-			"dept_name":        "vcs.dept_name",
-			"address":          "vcs.address",
-		},
-	},
+	bson.M{"$unwind":"$course_offer"},
 }
 
 // FetchVStudentEnrolled : Get VStudentEnrolled Object list
 func FetchVStudentEnrolled(param interface{}, ps *m.PageMeta) ([]*VStudentEnrolledMod, *m.PageMeta, error) {
 	var record []*VStudentEnrolledMod
-	nps := m.PageMeta{}
+	var nps m.PageMeta
 	// fmt.Println("req. params", param)
 	if m.DBConn != nil {
 		count, err := m.DBConn.C(v_stud_enroll_name).Find(&param).Count()
@@ -85,6 +61,10 @@ func FetchVStudentEnrolled(param interface{}, ps *m.PageMeta) ([]*VStudentEnroll
 		}
 		// // fmt.Println("count:", count)
 		Q := m.DBConn.C(v_stud_enroll_name).Find(param)
+		if len( ps.SortAr ) > 0 {
+			Q = Q.Sort(ps.SortAr...)
+			nps.Sort, nps.SortAr = ps.Sort, ps.SortAr
+		} 
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit
@@ -145,13 +125,13 @@ func TestVStudentEnrolled(param map[string]interface{}) (bool, error) {
 
 func CreateSchemaVStudentEnroll() (bool, error) {
 	bsonCheckName := []string{}
-	for ks := 0; ks < len(v_stud_enroll_schema); ks++ {
-		tmp := v_stud_enroll_schema[ks]
-		if tmp["$lookup"] != nil {
-			tmp1 := tmp["$lookup"].(bson.M)
-			bsonCheckName = append(bsonCheckName, tmp1["from"].(string))
-		}
-	}
+	// for ks := 0; ks < len(v_stud_enroll_schema); ks++ {
+	// 	tmp := v_stud_enroll_schema[ks]
+	// 	if tmp["$lookup"] != nil {
+	// 		tmp1 := tmp["$lookup"].(bson.M)
+	// 		bsonCheckName = append(bsonCheckName, tmp1["from"].(string))
+	// 	}
+	// }
 	bsonCheckName = append(bsonCheckName, v_stud_enroll_basemod)
 	fmt.Println("bsonCheckName: ", bsonCheckName)
 	nameList := m.MgoCursorRes{}
@@ -168,14 +148,14 @@ I:
 		if tmp == v_stud_enroll_name {
 			return false, nil
 			break I
-		} else {
-			for j := 0; j < len(bsonCheckName); j++ {
-				if bsonCheckName[j] == tmp {
-					bsonCheckName = append(bsonCheckName[:j], bsonCheckName[j+1:]...)
+		// } else {
+		// 	for j := 0; j < len(bsonCheckName); j++ {
+		// 		if bsonCheckName[j] == tmp {
+		// 			bsonCheckName = append(bsonCheckName[:j], bsonCheckName[j+1:]...)
 
-					continue I
-				}
-			}
+		// 			continue I
+		// 		}
+		// 	}
 		}
 	}
 	fmt.Println("bsonCheckName:", bsonCheckName, ", :num:", len(bsonCheckName))

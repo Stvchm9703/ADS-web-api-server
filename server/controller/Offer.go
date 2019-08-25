@@ -60,6 +60,7 @@ func GetOfferList(c *gin.Context) {
 		var PS m.PageMeta
 		PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
 		PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
+		PS.Sort, PS.SortAr = BindSort( c.Query("sort"),m.OfferMod{})
 		// search
 		o := BindQuery(c.Request.URL.Query(), m.OfferMod{})
 		if len(id) == 24 {

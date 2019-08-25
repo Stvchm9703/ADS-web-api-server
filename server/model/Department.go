@@ -53,6 +53,11 @@ func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentListM, *Page
 			return nil, nil, err
 		}
 		Q := DBConn.C(dept_mod_name).Find(param)
+
+		if len( ps.SortAr ) > 0 {
+			Q = Q.Sort(ps.SortAr...)
+			nps.Sort, nps.SortAr = ps.Sort, ps.SortAr
+		} 
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit
@@ -66,6 +71,7 @@ func FetchDepartment(param interface{}, ps *PageMeta) ([]*DepartmentListM, *Page
 		} else {
 			nps.PageNum = 1
 		}
+		
 		err1 := Q.All(&record)
 		if err1 != nil {
 			return nil, nil, err1

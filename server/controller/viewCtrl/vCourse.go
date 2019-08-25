@@ -16,6 +16,7 @@ func GetCourseList(c *gin.Context) {
 	var PS m.PageMeta
 	PS.PageLimit, _ = strconv.Atoi(c.Query("pl"))
 	PS.PageNum, _ = strconv.Atoi(c.Query("pn"))
+	PS.Sort, PS.SortAr = ctrl.BindSort( c.Query("sort"),v.VCourseOfferMod{})
 	fmt.Println("query map", c.Request.URL.Query())
 	fmt.Println("PS", PS)
 	// search

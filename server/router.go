@@ -4,11 +4,12 @@ import (
 	"log"
 	"net/http"
 	"path"
+
 	conf "webserver/server/common"
 
 	c "webserver/server/controller"
-
-	"github.com/gin-gonic/gin"
+	vc "webserver/server/controller/viewCtrl"
+	"github.com/gin-gonic/gin"	
 	"golang.org/x/sync/errgroup"
 )
 
@@ -26,17 +27,18 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 
 	router.Use(c.MdLoader())
 	// router.Use(c.HtmlLoader())
-	router.Static("/static", path.Join(conf.PathInRun, "server", "static"))
-	router.StaticFile("/create/dept", path.Join(conf.PathInRun, "server", "template", "create", "dept", "index.html"))
-	router.StaticFile("/create/student", path.Join(conf.PathInRun, "server", "template", "create", "student", "index.html"))
-	router.StaticFile("/dept", path.Join(conf.PathInRun, "server", "template", "dept", "index.html"))
-	router.StaticFile("/doc", path.Join(conf.PathInRun, "server", "template", "doc", "index.html"))
-	router.StaticFile("/student", path.Join(conf.PathInRun, "server", "template", "student", "index.html"))
-	router.StaticFile("/", path.Join(conf.PathInRun, "server", "template", "index.html"))
-	router.StaticFile("/200.html", path.Join(conf.PathInRun, "server", "template", "200.html"))
-	router.StaticFile("/favicon.ico", path.Join(conf.PathInRun, "server", "template", "favicon.ico"))
-	router.StaticFile("/icon.png", path.Join(conf.PathInRun, "server", "template", "icon.png"))
-	router.StaticFile("/sw.js", path.Join(conf.PathInRun, "server", "template", "sw.js"))
+	router.Static("/static", path.Join(conf.PathInRun, "static"))
+	router.StaticFile("/create/dept", path.Join(conf.PathInRun, "template", "create", "dept.html"))
+	router.StaticFile("/create/student", path.Join(conf.PathInRun, "template", "create", "student.html"))
+	router.StaticFile("/dept", path.Join(conf.PathInRun, "template", "dept.html"))
+	router.StaticFile("/doc", path.Join(conf.PathInRun, "template", "doc.html"))
+	router.StaticFile("/student", path.Join(conf.PathInRun, "template", "student.html"))
+	router.StaticFile("/", path.Join(conf.PathInRun, "template", "index.html"))
+	router.StaticFile("/200.html", path.Join(conf.PathInRun, "template", "200.html"))
+	router.StaticFile("/favicon.ico", path.Join(conf.PathInRun, "template", "favicon.ico"))
+	router.StaticFile("/icon.png", path.Join(conf.PathInRun, "template", "icon.png"))
+	router.StaticFile("/sw.js", path.Join(conf.PathInRun, "template", "sw.js"))
+	router.NoRoute(c.ErrorPage)
 
 	v1 := router.Group("/api/v1")
 	{
@@ -76,7 +78,8 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 		v1.POST("/u/student/:stud_id/enrolled/:e_id", c.UpdateEnroll)
 
 		// Enroll Course Detail
-		v1.GET("/l/student/:stud_id/enrolled/:course_id", c.GetEnrollList)
+		v1.GET("/vpj/l/student" , vc.GetEnrollList )
+		v1.GET("/vpj/l/dept" , vc.GetCourseList)
 
 		log.Println("v1")
 		log.Printf("Group:  %+v", v1)

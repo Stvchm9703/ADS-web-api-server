@@ -19,11 +19,8 @@ export default {
   plugins: [
     '~/plugins/axios'
   ],
-  css:['~/assets/sup.css','~/assets/github.css'],
-  devModules: [
-    // Doc: https://github.com/nuxt-community/eslint-module
-    // '@nuxtjs/eslint-module'
-  ],
+  css: ['~/assets/sup.css', '~/assets/github.css'],
+  devModules: [],
   modules: [
     'nuxt-buefy',
     '@nuxtjs/axios',
@@ -51,16 +48,12 @@ export default {
     proxy: true,
   },
   proxy: {
-    '/api': {
-      target: 'http://0.0.0.0:8080',
-
-    },
-    '/md': {
-      target: 'http://0.0.0.0:8080'
-    }
+    '/api': { target: 'http://0.0.0.0:8080', },
+    '/md': { target: 'http://0.0.0.0:8080' }
   },
   generate: {
     dir: 'dist',
+    subFolders: false,
   },
   build: {
     publicPath: '/static/',
@@ -74,4 +67,5 @@ export default {
     extractCSS: true,
     vendor: ['vuex', 'axios']
   },
+  
 }

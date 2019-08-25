@@ -12,53 +12,50 @@ import (
 
 type VCourseOfferMod struct {
 	ID              *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty" `
+	// Department
+	DeptObjID  *bson.ObjectId `bson:"dept_obj_id,omitempty" json:"dept_obj_id,omitempty"`
+	DeptID          *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
+	DeptName        *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
+	Location          *string        `bson:"location,omitempty" json:"location,omitempty"`
+	// Course
+	CourseObjID 	*bson.ObjectId `bson:"course_obj_id,omitempty" json:"course_obj_id,omitempty"`
 	CourseID        *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
 	Title           *string        `bson:"title,omitempty" json:"title,omitempty"`
 	Level           *int           `bson:"level,omitempty" json:"level,omitempty"`
-	CreatedAt       *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
-	UpdatedAt       *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+	// Offer i
+	CourseOfferId  *string    `bson:"course_offer_id,omitempty" json:"course_offer_id,omitempty"`
 	Year            *int           `bson:"year,omitempty" json:"year,omitempty"`
 	ClassSize       *int           `bson:"class_size,omitempty" json:"class_size,omitempty"`
 	AvailablePlaces *int           `bson:"available_places,omitempty" json:"available_places,omitempty"`
-	DeptID          *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
-	DeptName        *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
-	Address         *string        `bson:"address,omitempty" json:"address,omitempty"`
+	NumOfStud       *int           `bson:"num_of_stud,omitempty" json:"num_of_stud,omitempty"`
 }
 
 var v_course_offer_name = "VCourseOffer"
-var v_course_offer_basemod = "Offer"
+var v_course_offer_basemod = "department"
 var v_course_offer_schema = []bson.M{
-	bson.M{
-		"$lookup": bson.M{
-			"localField":   "dept_id",
-			"from":         "Department",
-			"foreignField": "dept_id",
-			"as":           "dept",
-		},
-	},
-	bson.M{
-		"$lookup": bson.M{
-			"localField":   "course_id",
-			"from":         "Course",
-			"foreignField": "course_id",
-			"as":           "cs",
-		},
-	},
+	bson.M{ "$unwind": "$courses" },
+	bson.M{ "$unwind": "$courses.offers" },
 	bson.M{
 		"$project": bson.M{
-			"_id":              1,
-			"course_id":        1,
-			"title":            "cs.title",
-			"level":            "cs.level",
-			"created_at":       1,
-			"updated_at":       1,
-			"year":             1,
-			"class_size":       1,
-			"available_places": 1,
-			"dept_id":          1,
-			"dept_name":        "dept.dept_name",
-			"address":          "dept.address",
-		},
+            "_id": "$courses.offers._id",
+            "dept_obj_id": "$_id",
+            "dept_id": "$dept_id",
+            "dept_name": "$dept_name",
+            "location": "$location",
+            "course_obj_id":"$courses._id",
+            "course_id" : "$courses.course_id",
+            "title": "$courses.title",
+			"level": "$courses.level",
+			"year" : "$courses.offers.year",
+            "class_size": "$courses.offers.class_size",
+			"available_place": "$courses.offers.available_place",
+			"course_offer_id": bson.M{
+				"$concat": []interface{}{ "$courses.course_id", "_",  bson.M{"$toStirng" : "$courses.offers.year"} },
+			},
+            "num_of_stud": bson.M{
+                "$subtract": []string{ "$courses.offers.class_size","$courses.offers.available_places" },
+			},	
+        },
 	},
 }
 
@@ -74,6 +71,11 @@ func FetchVCourseOffer(param interface{}, ps *m.PageMeta) ([]*VCourseOfferMod, *
 		}
 		// fmt.Println("count:", count)
 		Q := m.DBConn.C(v_course_offer_name).Find(param)
+		if len( ps.SortAr ) > 0 {
+			Q = Q.Sort(ps.SortAr...)
+			nps.Sort = ps.Sort
+			nps.SortAr = ps.SortAr
+		} 
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit
@@ -111,7 +113,6 @@ func GetVCourseOffer(id string) (*VCourseOfferMod, error) {
 			"_id": bson.ObjectIdHex(id),
 		}).One(&result)
 		if err != nil {
-			// fmt.Println(err)
 			return nil, err
 		}
 		return result, nil
@@ -135,15 +136,15 @@ func TestVCourseOffer(param map[string]interface{}) (bool, error) {
 
 func CreateSchemaVCourseOffer() (bool, error) {
 	bsonCheckName := []string{}
-	for ks := 0; ks < len(v_course_offer_schema); ks++ {
-		tmp := v_course_offer_schema[ks]
-		if tmp["$lookup"] != nil {
-			tmp1 := tmp["$lookup"].(bson.M)
-			bsonCheckName = append(bsonCheckName, tmp1["from"].(string))
-		}
-	}
-	bsonCheckName = append(bsonCheckName, v_course_offer_basemod)
-	fmt.Println("bsonCheckName: ", bsonCheckName)
+	// for ks := 0; ks < len(v_course_offer_schema); ks++ {
+	// 	tmp := v_course_offer_schema[ks]
+	// 	if tmp["$lookup"] != nil {
+	// 		tmp1 := tmp["$lookup"].(bson.M)
+	// 		bsonCheckName = append(bsonCheckName, tmp1["from"].(string))
+	// 	}
+	// }
+	// bsonCheckName = append(bsonCheckName, v_course_offer_basemod)
+	// fmt.Println("bsonCheckName: ", bsonCheckName)
 	nameList := m.MgoCursorRes{}
 	m.DBConn.Run(bson.M{
 		"listCollections": 1.0,
@@ -158,14 +159,13 @@ I:
 		if tmp == v_course_offer_name {
 			return false, nil
 			break I
-		} else {
-			for j := 0; j < len(bsonCheckName); j++ {
-				if bsonCheckName[j] == tmp {
-					bsonCheckName = append(bsonCheckName[:j], bsonCheckName[j+1:]...)
-
-					continue I
-				}
-			}
+		// } else {
+		// 	for j := 0; j < len(bsonCheckName); j++ {
+		// 		if bsonCheckName[j] == tmp {
+		// 			bsonCheckName = append(bsonCheckName[:j], bsonCheckName[j+1:]...)
+		// 			continue I
+		// 		}
+		// 	}
 		}
 	}
 	fmt.Println("bsonCheckName:", bsonCheckName, ", :num:", len(bsonCheckName))

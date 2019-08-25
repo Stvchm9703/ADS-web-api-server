@@ -35,6 +35,10 @@ func FetchStudent(param interface{}, ps *PageMeta) ([]*StudentMod, *PageMeta, er
 		}
 		// fmt.Println("count:", count)
 		Q := DBConn.C(student_mod_name).Find(param)
+		if len( ps.SortAr ) > 0 {
+			Q = Q.Sort(ps.SortAr...)
+			nps.Sort, nps.SortAr = ps.Sort, ps.SortAr
+		} 
 		if ps.PageLimit > 0 {
 			Q = Q.Limit(ps.PageLimit)
 			nps.PageLimit = ps.PageLimit

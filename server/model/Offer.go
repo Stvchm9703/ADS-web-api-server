@@ -18,6 +18,17 @@ type OfferMod struct {
 	CreatedAt       *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt       *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
 }
+
+type OfferModXP struct {
+	ID              *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
+	Year            *int           `bson:"year,omitempty" json:"year,omitempty"`
+	ClassSize       *int           `bson:"class_size,omitempty" json:"class_size,omitempty"`
+	AvailablePlaces *int           `bson:"available_places,omitempty" json:"available_places,omitempty"`
+	NumOfStud       *int           `bson:"num_of_stud,omitempty" json:"num_of_stud,omitempty"`
+	CreatedAt       *time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	UpdatedAt       *time.Time     `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+}
+
 type CourseOfferMod struct {
 	ID       *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
 	CourseID *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
@@ -41,19 +52,29 @@ func FetchCourseOffer(courseId string, param interface{}, ps *PageMeta) ([]*Cour
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		err1 := DBConn.C(dept_mod_name).Pipe(
-			[]bson.M{
-				bson.M{"$match": bson.M{
-					"courses._id": bson.ObjectIdHex(courseId),
-					"courses.offers": bson.M{
-						"$elemMatch": param,
-					},
-				}},
-				bson.M{"$unwind": "$courses"},
-				// bson.M{"$unwind": "$courses.offers"},
-				bson.M{"$replaceRoot": bson.M{"newRoot": "$courses"}},
-			},
-		).All(&record)
+		qry :=[]bson.M{
+			bson.M{"$match": bson.M{
+				"courses._id": bson.ObjectIdHex(courseId),
+				"courses.offers": bson.M{
+					"$elemMatch": param,
+				},
+			}},
+			bson.M{"$unwind": "$courses"},
+			bson.M{"$replaceRoot": bson.M{"newRoot": "$courses"}},
+		}
+		if len(ps.Sort) > 0 {
+			qry = append(qry, bson.M{"$sort": ps.Sort})
+			nps.Sort = ps.Sort
+		}
+		if ps.PageLimit > 0 {
+			qry = append(qry, bson.M{"$sort": ps.PageLimit})
+			nps.PageLimit = ps.PageLimit
+		}
+		if ps.PageNum > 0 {
+			qry = append(qry, bson.M{"$skip" : (ps.PageNum-1) *ps.PageLimit})
+			nps.PageNum = ps.PageNum
+		}
+		err1 := DBConn.C(dept_mod_name).Pipe( qry ).All(&record)
 		if err1 != nil {
 			fmt.Println(err1)
 			return nil, nil, err1
@@ -81,19 +102,30 @@ func FetchAllOffer(param interface{}, ps *PageMeta) ([]*CourseOfferMod, *PageMet
 	}
 	fmt.Println("t", t)
 	if DBConn != nil {
-		err1 := DBConn.C(dept_mod_name).Pipe(
-			[]bson.M{
-				bson.M{"$match": bson.M{
-					"courses.offers": bson.M{
-						"$elemMatch": param,
-					},
-				}},
-				bson.M{"$unwind": "$courses"},
-				bson.M{"$unwind": "$courses.offers"},
-				bson.M{"$replaceRoot": bson.M{"newRoot": "$courses"}},
-				bson.M{"$match": t},
-			},
-		).All(&record)
+		qry := []bson.M{
+			bson.M{"$match": bson.M{
+				"courses.offers": bson.M{
+					"$elemMatch": param,
+				},
+			}},
+			bson.M{"$unwind": "$courses"},
+			bson.M{"$unwind": "$courses.offers"},
+			bson.M{"$replaceRoot": bson.M{"newRoot": "$courses"}},
+			bson.M{"$match": t},
+		}
+		if len(ps.Sort) > 0 {
+			qry = append(qry, bson.M{"$sort": ps.Sort})
+			nps.Sort = ps.Sort
+		}
+		if ps.PageLimit > 0 {
+			qry = append(qry, bson.M{"$sort": ps.PageLimit})
+			nps.PageLimit = ps.PageLimit
+		}
+		if ps.PageNum > 0 {
+			qry = append(qry, bson.M{"$skip" : (ps.PageNum-1) *ps.PageLimit})
+			nps.PageNum = ps.PageNum
+		}
+		err1 := DBConn.C(dept_mod_name).Pipe(qry).All(&record)
 		if err1 != nil {
 			return nil, nil, err1
 		}

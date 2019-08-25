@@ -108,3 +108,6 @@ sw.*
 
 # Vim swap files
 *.swp
+
+static
+template

@@ -54,16 +54,27 @@ func FetchAllEnroll(param interface{}, ps *PageMeta) ([]*StudentEnrollMod, *Page
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		err1 := DBConn.C(student_mod_name).Pipe(
-			[]bson.M{
-				bson.M{"$match": bson.M{
-					"enrolled": bson.M{
-						"$elemMatch": param,
-					},
-				}},
-				bson.M{"$unwind": "$enrolled"},
-			},
-		).All(&record)
+		qry :=[]bson.M{
+			bson.M{"$match": bson.M{
+				"enrolled": bson.M{
+					"$elemMatch": param,
+				},
+			}},
+			bson.M{"$unwind": "$enrolled"},
+		}
+		if len(ps.Sort) > 0 {
+			qry = append(qry, bson.M{"$sort": ps.Sort})
+			nps.Sort = ps.Sort
+		}
+		if ps.PageLimit > 0 {
+			qry = append(qry, bson.M{"$sort": ps.PageLimit})
+			nps.PageLimit = ps.PageLimit
+		}
+		if ps.PageNum > 0 {
+			qry = append(qry, bson.M{"$skip" : (ps.PageNum-1) *ps.PageLimit})
+			nps.PageNum = ps.PageNum
+		}
+		err1 := DBConn.C(student_mod_name).Pipe(qry).All(&record)
 		if err1 != nil {
 			return nil, nil, err1
 		}

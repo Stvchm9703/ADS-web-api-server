@@ -71,6 +71,52 @@ func RecoverMW() gin.HandlerFunc {
 
 // --------------------------------
 
+func BindSort(q string, lookup interface{}) (map[string]int , []string) {
+	var qary []string
+	var t map[string]string
+	result := map[string]int{}
+	v := reflect.ValueOf(lookup)
+	typ := v.Type()
+	if err := json.Unmarshal([]byte(q), &t); err != nil {
+		fmt.Println(err)
+		qary = strings.Split(q, ",")
+		for i := 0; i < v.NumField(); i++ {
+			fi := typ.Field(i)
+			tg := strings.Split(fi.Tag.Get("json"), ",")[0]
+			if tg == qary[0] {
+				sortO := 0
+				if qary[1] == "desc"{
+					sortO = -1
+				} else if qary[1] == "asc"{
+					sortO = 1
+				}
+				if sortO != 0{
+					result[tg] = sortO
+				}
+			}
+		}
+		
+	} else {
+		for i := 0; i < v.NumField(); i++ {
+			fi := typ.Field(i)
+			tg := strings.Split(fi.Tag.Get("json"), ",")[0]
+			if  t[tg] != "" {
+				sortO := 0
+				if t[tg] == "desc"{
+					sortO = -1
+					qary = append(qary,"-"+tg)
+				} else {
+					sortO = 1
+					qary = append(qary,tg)
+				}
+				result[tg] = sortO
+			}
+		}
+	}
+	return result, qary
+}
+
+
 func BindingErr(c *gin.Context, exp interface{}) {
 	temp := map[string]interface{}{}
 	t := reflect.TypeOf(exp)
@@ -109,11 +155,19 @@ func BindQuery(q map[string][]string, lookup interface{}) *bson.M {
 	}
 	// fmt.Println("len : ", len(Qbson))
 	// fmt.Println("Qbson", Qbson)
+	
+	fmt.Println("qbind",q["qbind"])
 	if len(Qbson) > 1 {
-		bsonQ["$or"] = Qbson
+		if len(q["qbind"]) > 0  && (q["qbind"][0] == "and" || q["qbind"][0] =="or" || q["qbind"][0] == "nor" || q["qbind"][0] =="not") {
+			bsonQ["$" + q["qbind"][0]] = Qbson
+		} else {
+			bsonQ["$and"] = Qbson
+		}
 	} else if len(Qbson) == 1 {
 		bsonQ = Qbson[0]
 	}
+	
+	
 	return &bsonQ
 }
 

@@ -22,6 +22,8 @@ type PageMeta struct {
 	PageLimit int `json:"page_limit,omitempty"`
 	PageNum   int `json:"page_num,omitempty"`
 	Count     int `json:"count,omitempty"`
+	Sort      map[string]int `json:"sort,omitempty"`
+	SortAr    []string 
 }
 
 type MgoCursorRes struct {
@@ -258,10 +260,7 @@ func remove(s []bson.M, i int) []bson.M {
 // for futune
 func ImportData(folderPath *string) (bool, error) {
 	tmpBD := []string{
-		"Course",
 		"Department",
-		"Enroll",
-		"Offer",
 		"Student",
 	}
 	if folderPath == nil {
@@ -315,10 +314,7 @@ func ImportData(folderPath *string) (bool, error) {
 
 func ExportData(targetPath *string) (bool, error) {
 	tmpBD := []string{
-		"Course",
 		"Department",
-		"Enroll",
-		"Offer",
 		"Student",
 	}
 
