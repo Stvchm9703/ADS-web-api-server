@@ -2,16 +2,14 @@
 
 ## Content
 
-- ##### [Project Structure](/doc/pjsturct)
+- ##### [System Setup](/doc#setup)
 
-- ##### [System Setup](/doc/setup)
-
-- ##### [Data Structure and Api Information](/doc/api#)
-  - [Department](/doc/api/department)
-  - [Course](/doc/api/course)
-  - [Offer](/doc/api/offer)
-  - [Student](/doc/api/student)
-  - [Enroll](/doc/api/enroll)
+- ##### [Data Structure and Api Information](/doc/#api)
+  - [Department](/doc/#api/department)
+  - [Course](/doc/#api/course)
+  - [Offer](/doc/#api/offer)
+  - [Student](/doc/#api/student)
+  - [Enroll](/doc/#api/enroll)
 
 - #### View Page
   - [Page Manual](/doc/page/manual)

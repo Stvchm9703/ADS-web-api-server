@@ -25,19 +25,7 @@ type CourseListM struct {
 	DeptID   *string        `bson:"dept_id,omitempty" json:"dept_id,omitempty"`
 	DeptName *string        `bson:"dept_name,omitempty" json:"dept_name,omitempty"`
 	Location *string        `bson:"location,omitempty" json:"location,omitempty"`
-	Courses  *struct {
-		ID       *bson.ObjectId `bson:"_id,omitempty" json:"_id,omitempty"`
-		CourseID *string        `bson:"course_id,omitempty" json:"course_id,omitempty"`
-		Title    *string        `bson:"title,omitempty" json:"title,omitempty"`
-		Level    *int           `bson:"level,omitempty" json:"level,omitempty"`
-		Offers   []struct {
-			Year            *int `bson:"year,omitempty" json:"year,omitempty"`
-			ClassSize       *int `bson:"class_size,omitempty" json:"class_size,omitempty"`
-			AvailablePlaces *int `bson:"available_places,omitempty" json:"available_places,omitempty"`
-		} `bson:"offers,omitempty" json:"offers,omitempty"`
-		CreatedAt *time.Time `bson:"created_at,omitempty" json:"created_at,omitempty"`
-		UpdatedAt *time.Time `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
-	} `bson:"courses,omitempty" json:"courses,omitempty"`
+	Courses  *CourseMod     `bson:"courses,omitempty" json:"courses,omitempty"`
 }
 
 // var course_mod_name = "Course"
@@ -48,7 +36,7 @@ func FetchDeptCourse(dept_id string, param interface{}, ps *PageMeta) ([]*Course
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		
+
 		err1 := DBConn.C(dept_mod_name).Find(
 			bson.M{
 				"_id": bson.ObjectIdHex(dept_id),
@@ -77,13 +65,13 @@ func FetchAllCourse(param interface{}, ps *PageMeta) ([]CourseListM, *PageMeta, 
 	fmt.Println("req. params", param)
 	if DBConn != nil {
 		qry := []bson.M{
-				bson.M{"$match": bson.M{
-					"courses": bson.M{
-						"$elemMatch": param,
-					},
-				}},
-				bson.M{"$unwind": "$courses"},	
-			} 
+			bson.M{"$match": bson.M{
+				"courses": bson.M{
+					"$elemMatch": param,
+				},
+			}},
+			bson.M{"$unwind": "$courses"},
+		}
 		if len(ps.Sort) > 0 {
 			qry = append(qry, bson.M{"$sort": ps.Sort})
 			nps.Sort = ps.Sort
@@ -93,7 +81,7 @@ func FetchAllCourse(param interface{}, ps *PageMeta) ([]CourseListM, *PageMeta, 
 			nps.PageLimit = ps.PageLimit
 		}
 		if ps.PageNum > 0 {
-			qry = append(qry, bson.M{"$skip" : (ps.PageNum-1) *ps.PageLimit})
+			qry = append(qry, bson.M{"$skip": (ps.PageNum - 1) * ps.PageLimit})
 			nps.PageNum = ps.PageNum
 		}
 		err1 := DBConn.C(dept_mod_name).Pipe(qry).All(&record)
@@ -112,16 +100,25 @@ func FetchAllCourse(param interface{}, ps *PageMeta) ([]CourseListM, *PageMeta, 
 // GetCourse : get one Course object
 func GetDeptCourse(dept_id string, id string) (*CourseMod, error) {
 	if DBConn != nil {
-		var result *DepartmentMod
-		err := DBConn.C(dept_mod_name).Find(bson.M{
-			"_id":         bson.ObjectIdHex(dept_id),
-			"courses._id": bson.ObjectIdHex(id),
-		}).One(&result)
-		if err != nil {
-			fmt.Println(err)
-			return nil, err
+		var result *CourseListM
+
+		qry := []bson.M{
+			bson.M{"$match": bson.M{
+				"_id":         bson.ObjectIdHex(dept_id),
+				"courses._id": bson.ObjectIdHex(id),
+			}},
+			bson.M{"$unwind": "$courses"},
+			bson.M{"$match": bson.M{
+				"_id":         bson.ObjectIdHex(dept_id),
+				"courses._id": bson.ObjectIdHex(id),
+			}},
 		}
-		return result.Courses[0], nil
+		err1 := DBConn.C(dept_mod_name).Pipe(qry).One(&result)
+		if err1 != nil {
+			fmt.Println(err1)
+			return nil, err1
+		}
+		return result.Courses, nil
 	}
 	_, err := NotConn()
 	return nil, err
@@ -191,16 +188,25 @@ func UpdateCourse(dept_id string, Old *CourseMod, New *CourseMod) (*CourseMod, e
 			return nil, err
 		}
 
-		var result *DepartmentMod
-		err = DBConn.C(dept_mod_name).Find(bson.M{
-			"_id":         bson.ObjectIdHex(dept_id),
-			"courses._id": Old.ID,
-		}).One(&result)
+		var result *CourseListM
+
+		qry := []bson.M{
+			bson.M{"$match": bson.M{
+				"_id":         bson.ObjectIdHex(dept_id),
+				"courses._id": Old.ID,
+			}},
+			bson.M{"$unwind": "$courses"},
+			bson.M{"$match": bson.M{
+				"_id":         bson.ObjectIdHex(dept_id),
+				"courses._id": Old.ID,
+			}},
+		}
+		err = DBConn.C(dept_mod_name).Pipe(qry).One(&result)
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
-		return result.Courses[0], nil
+		return result.Courses, nil
 		// return GetDeptCourse(dept_id, Old.ID.Hex())
 	}
 	_, err := NotConn()

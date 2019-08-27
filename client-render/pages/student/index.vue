@@ -11,6 +11,8 @@ section.section
       :student_id='k.student_id'
       :objId='k._id'
       :enrolled='k.enrolled'
+      :createdAt='k.created_at'
+      :lastUpdated='k.updated_at'
       @onReload="fetchStudent()"
       )
 </template>

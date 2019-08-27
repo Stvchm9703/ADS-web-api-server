@@ -49,6 +49,21 @@ div
                   b-button(@click="cancelCreate()") Cancel
                 
       .content  
+        .columns
+          b-field.column.is-full(grouped)
+            b-taginput(
+              placeholder='Search...' 
+              type='search' 
+              icon='magnify'
+              :data="OfferQueryKey" 
+              :allow-new="true"
+              v-model='OfferQuery'
+              autocomplete
+              expanded)
+            p.control
+              b-button.is-primary(
+                @click=""
+              ) Search
         b-table(grouped group-multiline 
           :data="enrolled"
           ref="table"
@@ -122,6 +137,10 @@ export default {
     objId: "",
     enrolled: [],
 
+    OfferQuery : [],
+    OfferQueryKey : ["year", "title", "level", "course_id", "dept_id","dept_name"],
+    OfferQMap:{},
+    
     OfferOpt: [],
 
     isPaginated: true,
@@ -171,8 +190,18 @@ export default {
             return e.course_id == this.tmpRow.course_id;
           })
         : [];
-    }
+    },
+    // enrolledF(){
+    //   let f = Object.keys(this.OfferQMap)
+    //   let e = this.enrolled.filter(e => {
+    //     f.forEach(w => {
+    //       return e[w] == this.OfferQMap[w] 
+    //     })
+    //   })
+    //   return e 
+    // }
   },
+  
   methods: {
     async fetchStudent() {
       try {
@@ -209,6 +238,48 @@ export default {
           position: "is-bottom"
         });
       }
+    },
+
+    async fetchCourseOffer() {
+      try {
+
+        let query = `?student_id={"in":"${this.student_id}"}` 
+        query += this.breakQuery()
+        let ip = await this.$axios.$get(
+          `/api/v1/vpj/l/student?${query}`
+        );
+        // this.OfferOpt = ip.data;
+        console.log(ip);
+      } catch (e) {
+        console.warn(e)
+        this.$buefy.toast.open({
+          message: "The Offer List fetching error",
+          type: "is-warning",
+          position: "is-bottom"
+        });
+      }
+    },
+
+    breakQuery() {
+      let y = {};
+      this.OfferQuery.forEach(d => {
+        let w = d.split(":");
+        if (this.OfferQueryKey.indexOf(w[0]) > -1) {
+          console.log("w", w);
+          if (y[w[0] + ""] == null) {
+            y[w[0] + ""] = [w[1]];
+          } else {
+            y[w[0] + ""].push(w[1]);
+          }
+        }
+      });
+      let exp=""
+      Object.keys(y).forEach((key)=> {
+        console.log(key, y[key]);
+        exp += `&course_offer.${key}={"in":[${y[key].join(",")}]}`
+      });
+      console.log(exp);
+      return exp;
     },
 
     toggle(row) {
@@ -332,8 +403,11 @@ export default {
     }
   },
   beforeMount() {
-    this.fetchStudent();
+    this.fetchStudent()
     this.fetchOffer();
+    setTimeout(() =>    
+       this.fetchCourseOffer()
+       ,5000);
   }
 };
 </script>
