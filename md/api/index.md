@@ -126,7 +126,7 @@ Student = {
 ```
 ----
 
-Draft 1 is based on the Department-Course-Offer and Student-Enrolled these relationship,\
- while Draft 2 is based on the Department, Course-Offer, Offer-Enrolled , Student as the collection
+Draft 1 is based on the Department-Course-Offer and Student-Enrolled these relationship, to build the emmbedded document\
+ while Draft 2 is based on the Department, Course-Offer, Offer-Enrolled , Student as the reference collection
 
 Although Draft 1's Data is partrialy replicated, but consider the future use-case in Web Application and mobile application, keeping in same document may less 
