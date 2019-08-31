@@ -31,23 +31,25 @@ Therefore, the model relationship can draft as below:
 ![draft2](./draft2.jpg)
 
 
-#### Draft 1
+### Draft 1
 
 Department Object
 ```js
 // Department 
 Department  = {
+    _id : String<object_id>,
     DeptID: String,
     DeptName: String,
     Location: String,
     // Course Obj
     Courses: [{
+        _id : String<object_id>,
         CourseID: String,
         Title: String,
         Level: Number,
         // Offer Obj
         Offers: [{ 
-            _id: String,
+            _id : String<object_id>,
             Year: Number,
             ClassSize: Number,
             AvailablePlaces: Number
@@ -60,53 +62,63 @@ Student Object
 ```js
 // Student Object
 Student = {
+    _id : String<object_id>,
     StudentID: String,
     StudentName: String,
     DOB: Date,
     // Enrolled Obj
     Enrolled: [{
-        CourseID : String,
+    _id : String<object_id>,
+    CourseID : String,
         Year : String,
-        EnrolDate: Date
+        EnrollDate: Date
     }] 
 }
 ```
 
-#### Draft 2
+### Draft 2
 
 Department Object
 ```js
 // Department 
 Department  = {
+    _id : String<object_id>,
     DeptID: String,
     DeptName: String,
     Location: String,
 }
 ```
 
-Course-Offer-Enrolled
+Course-Offer
 ```js
 // Course Obj
 Courses={
+    _id : String<object_id>,
+    DepartmentId : String<department.obj_id>,
     CourseID: String,
     Title: String,
     Level: Number,
-    // Offer Obj
-    Offers: [{ 
-        _id: String,
-        Year: Number,
-        ClassSize: Number,
-        Enrolled : [{
-            EnrollDate : Date,
-            StudentID : String,
-        }]
-    }] 
+    Offers:[ String<offer.obj_id>]
+}
+```
+
+Offer-Enrolled
+```js
+Offers = { 
+    _id : String<object_id>,
+    Year: Number,
+    ClassSize: Number,
+    Enrolled : [{
+        EnrollDate : Date,
+        StudentID : String<student.obj_id>,
+    }]
 }
 
 ```
 Student Object
 ```js
-let Student = {
+Student = {
+    _id : String<object_id>,
     StudentID: String,
     StudentName: String,
     DOB: Date,
@@ -115,6 +127,6 @@ let Student = {
 ----
 
 Draft 1 is based on the Department-Course-Offer and Student-Enrolled these relationship,\
- while Draft 2 is based on the Department , Course-Offer-Enrolled , Student as the collection
+ while Draft 2 is based on the Department, Course-Offer, Offer-Enrolled , Student as the collection
 
-Although Draft 1's Data is partrialy replicated, but consider the use-case of  
+Although Draft 1's Data is partrialy replicated, but consider the future use-case in Web Application and mobile application, keeping in same document may less 

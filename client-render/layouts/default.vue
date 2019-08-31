@@ -27,7 +27,53 @@ div
       p.menu-label.is-hidden-touch
         | Document for this Project
       ul.menu-list
-      
+        li
+          nuxt-link(
+            to='/doc' 
+            exact-active-class='is-active')
+            b-icon(icon='home')
+            | Info and Summary 
+        li
+          nuxt-link(
+            to='/doc#api' 
+            exact-active-class='is-active')
+            | API
+        
+          ul
+            nuxt-link(
+              to='/doc#api/course' 
+              exact-active-class='is-active')
+              | Course
+          ul
+            nuxt-link(
+              to='/doc#api/department' 
+              exact-active-class='is-active')
+              | Department
+          ul
+            nuxt-link(
+              to='/doc#api/enroll' 
+              exact-active-class='is-active')
+              | Enroll
+          ul
+            nuxt-link(
+              to='/doc#api/offer' 
+              exact-active-class='is-active')
+              | Offer
+          ul
+            nuxt-link(
+              to='/doc#api/student' 
+              exact-active-class='is-active')
+              | Student
+          ul
+            nuxt-link(
+              to='/doc#api/vstudentenroll' 
+              exact-active-class='is-active')
+              | Student Enrolled Course (Read Only)
+          ul
+            nuxt-link(
+              to='/doc#api/vcourse' 
+              exact-active-class='is-active')
+              | Course Offer Detail (Read Only)
 
     .container.column.is-10
       nuxt

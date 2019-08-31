@@ -18,7 +18,7 @@ export default {
     }
   },
   watch: {
-    fhash(){
+    topic(){
       this.fetchPost()
     }
   },
