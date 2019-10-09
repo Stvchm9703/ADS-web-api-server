@@ -255,7 +255,7 @@ func DeleteEnroll(sid string, cpid string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		err := DBConn.C(student_mod_name).Update(bson.M{
+		err = DBConn.C(student_mod_name).Update(bson.M{
 			"_id": bson.ObjectIdHex(sid),
 		}, bson.M{
 			"$pull": bson.M{
