@@ -9,7 +9,8 @@ import (
 
 	c "webserver/server/controller"
 	vc "webserver/server/controller/viewCtrl"
-	"github.com/gin-gonic/gin"	
+
+	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -78,8 +79,8 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 		v1.POST("/u/student/:stud_id/enrolled/:e_id", c.UpdateEnroll)
 
 		// Enroll Course Detail
-		v1.GET("/vpj/l/student" , vc.GetEnrollList )
-		v1.GET("/vpj/l/dept" , vc.GetCourseList)
+		v1.GET("/vpj/l/student", vc.GetEnrollList)
+		v1.GET("/vpj/l/dept", vc.GetCourseList)
 
 		log.Println("v1")
 		log.Printf("Group:  %+v", v1)

@@ -22,8 +22,9 @@ func MdLoader() gin.HandlerFunc {
 				c.Abort()
 			}
 			c.Data(200, "text/html; charset=utf-8", mdfile)
+		} else {
+			c.Next()
 		}
-		c.Next()
 
 	}
 }
@@ -34,5 +35,10 @@ func init() {
 	Errpage, _ = ioutil.ReadFile(path.Join(common.PathInRun, "template", "error.html"))
 }
 func ErrorPage(c *gin.Context) {
-	c.Data(200, "text/html; charset=utf-8", Errpage)
+	posty := c.Request.URL.String()
+	if strings.Contains(posty, "/md/") && strings.Index(posty, ".md") == len(posty)-3 {
+		c.Next()
+	} else {
+		c.Data(200, "text/html; charset=utf-8", Errpage)
+	}
 }

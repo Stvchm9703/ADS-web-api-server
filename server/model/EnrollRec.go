@@ -54,7 +54,7 @@ func FetchAllEnroll(param interface{}, ps *PageMeta) ([]*StudentEnrollMod, *Page
 	nps := PageMeta{}
 	fmt.Println("req. params", param)
 	if DBConn != nil {
-		qry :=[]bson.M{
+		qry := []bson.M{
 			bson.M{"$match": bson.M{
 				"enrolled": bson.M{
 					"$elemMatch": param,
@@ -71,7 +71,7 @@ func FetchAllEnroll(param interface{}, ps *PageMeta) ([]*StudentEnrollMod, *Page
 			nps.PageLimit = ps.PageLimit
 		}
 		if ps.PageNum > 0 {
-			qry = append(qry, bson.M{"$skip" : (ps.PageNum-1) *ps.PageLimit})
+			qry = append(qry, bson.M{"$skip": (ps.PageNum - 1) * ps.PageLimit})
 			nps.PageNum = ps.PageNum
 		}
 		err1 := DBConn.C(student_mod_name).Pipe(qry).All(&record)
@@ -231,6 +231,30 @@ func UpdateEnroll(stud_id string, Old *EnrollMod, New *EnrollMod) (*EnrollMod, e
 // DeleteEnroll : Delete a Enroll
 func DeleteEnroll(sid string, cpid string) (bool, error) {
 	if DBConn != nil {
+		cp, err := GetEnroll(sid, cpid)
+		if err != nil {
+			return false, err
+		}
+		resultCursor := MgoCursorRes{}
+		err = DBConn.Run(bson.M{
+			"update": dept_mod_name,
+			"updates": []bson.M{bson.M{
+				"q": bson.M{
+					"courses.course_id":   cp.CourseID,
+					"courses.offers.year": cp.Year,
+				},
+				"u": bson.M{
+					"$inc": bson.M{"courses.$[ele].offers.$[elem].available_places": 1},
+				},
+				"arrayFilters": []bson.M{
+					bson.M{"ele.course_id": bson.M{"$eq": cp.CourseID}},
+					bson.M{"elem.year": bson.M{"$eq": cp.Year}},
+				},
+			}},
+		}, &resultCursor)
+		if err != nil {
+			return false, err
+		}
 		err := DBConn.C(student_mod_name).Update(bson.M{
 			"_id": bson.ObjectIdHex(sid),
 		}, bson.M{

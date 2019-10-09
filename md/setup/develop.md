@@ -1,4 +1,4 @@
-# System setup for Deployment
+# System setup for Development
 *if you are looking for the command list
 
 this part is mainly for developing setup.
@@ -281,3 +281,15 @@ then, you can push the files in `/client_render/dist` to :
 - static files in `/client_render/dist/static` to `static`
 
 after this, you can run the go server with webpage
+
+---
+## Build webserver from Golang to Executable
+
+This step is used to build an executable for production.
+
+>*make sure you have installed related dependencies*
+
+```bash
+go build
+```
+then, the executable (`webserver`) is built under the project directory 

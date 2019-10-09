@@ -66,7 +66,7 @@ div
               | Student
           ul
             nuxt-link(
-              to='/doc#api/vstudentenroll' 
+              to='/doc#api/vstudent' 
               exact-active-class='is-active')
               | Student Enrolled Course (Read Only)
           ul

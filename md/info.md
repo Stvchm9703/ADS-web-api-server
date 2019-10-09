@@ -3,6 +3,7 @@
 ## Content
 
 - ##### [System Setup](/doc#setup)
+  - [Development](/doc/#setup/develop)
 
 - ##### [Data Structure and Api Information](/doc/#api)
   - [Department](/doc/#api/department)
@@ -11,9 +12,6 @@
   - [Student](/doc/#api/student)
   - [Enroll](/doc/#api/enroll)
 
-- #### View Page
-  - [Page Manual](/doc/page/manual)
-  - [Function Requirement](/doc/page/requirement)
 
 
 ------
