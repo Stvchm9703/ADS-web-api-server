@@ -28,7 +28,32 @@ func RouterSetting(config *conf.ConfigTemp) http.Handler {
 
 	router.Use(c.MdLoader())
 	// router.Use(c.HtmlLoader())
+
+	// static file path
 	router.Static("/static", path.Join(conf.PathInRun, "static"))
+	// var static_resx_path = ""
+	// if strings.Contains(config.Server.StaticFilepath, "./") {
+	// 	static_resx_path = path.Join(
+	// 		config.Server.RootFilePath,
+	// 		strings.Replace(config.Server.StaticFilepath, "./", "", 0),
+	// 	)
+	// } else if strings.Contains(config.Server.StaticFilepath, ".\\") {
+	// 	static_resx_path = path.Join(
+	// 		config.Server.RootFilePath,
+	// 		strings.Replace(config.Server.StaticFilepath, ".\\", "", 0),
+	// 	)
+	// } else {
+	// 	static_resx_path = ""
+	// }
+
+	// router.Static(
+	// 	config.Server.StaticOutpath,
+	// 	path.Join(
+	// 		conf.PathInRun,
+	// 		config.Server.StaticFilepath,
+	// 	),
+	// )
+
 	router.StaticFile("/create/dept", path.Join(conf.PathInRun, "template", "create", "dept.html"))
 	router.StaticFile("/create/student", path.Join(conf.PathInRun, "template", "create", "student.html"))
 	router.StaticFile("/dept", path.Join(conf.PathInRun, "template", "dept.html"))
