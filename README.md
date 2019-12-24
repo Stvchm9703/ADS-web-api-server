@@ -6,11 +6,11 @@
   - [Development](/md/setup/develop.md)
 
 - ##### [Data Structure and Api Information](/md/api)
-  - [Department](/md/api/department)
-  - [Course](/md/api/course)
-  - [Offer](/md/api/offer)
-  - [Student](/md/api/student)
-  - [Enroll](/md/api/enroll)
+  - [Department](/md/api/department.md)
+  - [Course](/md/api/course.md)
+  - [Offer](/md/api/offer.md)
+  - [Student](/md/api/student.md)
+  - [Enroll](/md/api/enroll.md)
 
 
 
