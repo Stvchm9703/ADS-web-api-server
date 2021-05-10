@@ -26,7 +26,7 @@
     "cross-env": "^5.2.0",
     "eslint": "^6.1.0",
     "eslint-plugin-nuxt": ">=0.4.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "markdown-it-attrs": "^3.0.1",
     "markdown-it-div": "^1.1.0",
     "markdown-it-github-headings": "^1.1.1",
